@@ -1,17 +1,11 @@
-# 🏗 scaffold-eth
+# 🏗 Servicechain.io
 
-> is everything you need to get started building decentralized applications powered by smart contracts
+> Built on top of scaffold-eth. Exposes web3 applications to the service industry including methods to tip through crpto,
+> rate service workers stored on the immutable Servicechain, and allow workers to log hours. 
 
 ---
 
 ## quickstart
-
-```bash 
-git clone https://github.com/austintgriffith/scaffold-eth.git your-next-dapp
-
-cd your-next-dapp
-```
-
 ```bash
 
 yarn install
