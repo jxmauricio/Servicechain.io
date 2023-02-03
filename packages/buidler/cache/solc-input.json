@@ -1,0 +1,37 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/Log.sol": {
+      "content": "pragma solidity ^0.6.10;\n\ncontract Log{\n\n    mapping(address=>uint[]) public hourLog;\n\n    function enterHours(address waiter,uint value) public{\n        hourLog[waiter].push(value);\n    }\n    function getTotalHours(address waiter) public view returns(uint vals){\n        uint sum = 0;\n        for(uint i=0;i<hourLog[waiter].length;i++){\n            sum+=hourLog[waiter][i];\n        }\n        return sum;\n    }\n    function getHourLog(address waiter) public view returns(uint[] memory){\n        return hourLog[waiter];\n\n    }\n\n}"
+    },
+    "contracts/Rating.sol": {
+      "content": "pragma solidity ^0.6.10;\n\ncontract Rating {\n\n    struct customerRating{\n        address from;\n        uint rating;\n    }\n    mapping(address=>customerRating[]) public ratings;\n\n    function sendRatings(address customer,address waiter,uint rating) public {\n        ratings[waiter].push(customerRating(customer,rating));\n    }\n\n    function getRating(address waiter) public view returns (uint avgRating) {\n        uint sumRatings = 0;\n        for (uint i=0;i<ratings[waiter].length;i++){\n            sumRatings+=ratings[waiter][i].rating;\n        }\n        uint avgRating = sumRatings/ratings[waiter].length;\n        return avgRating;\n\n\n    }\n}"
+    },
+    "contracts/Tipping.sol": {
+      "content": "pragma solidity ^0.6.10;\n\ncontract Tipping {\n    event Deposit(address indexed sender, uint amount, uint balance);\n    event SubmitTip(\n        address indexed owner,\n        uint indexed txIndex,\n        address indexed to,\n        uint value,\n        bytes data\n    );\n\n    struct Transaction {\n        address to;\n        uint value;\n        bytes data;\n    }\n\n    Transaction[] public transactions;\n\n    modifier txExists(uint _txIndex) {\n        require(_txIndex < transactions.length, \"tx does not exist\");\n        _;\n    }\n\n    receive() payable external {\n        emit Deposit(msg.sender, msg.value, address(this).balance);\n    }\n\n    function submitTip(address _to, uint _value, bytes memory _data)\n        public\n    {\n        uint txIndex = transactions.length;\n        transactions.push(Transaction({\n            to: _to,\n            value: _value,\n            data: _data\n        }));\n        emit SubmitTip(msg.sender, txIndex, _to, _value, _data);\n    }\n\n\n    function getTransactionCount() public view returns (uint) {\n        return transactions.length;\n    }\n\n    function getTransaction(uint _txIndex)\n        public\n        view\n        returns (address to, uint value, bytes memory data)\n    {\n        Transaction storage transaction = transactions[_txIndex];\n        return (transaction.to, transaction.value, transaction.data);\n    }\n\n}\n"
+    }
+  },
+  "settings": {
+    "metadata": {
+      "useLiteralContent": true
+    },
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers"
+        ],
+        "": [
+          "id",
+          "ast"
+        ]
+      }
+    }
+  }
+}

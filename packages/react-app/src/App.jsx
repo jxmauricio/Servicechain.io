@@ -119,7 +119,7 @@ function App() {
 
         <Menu style={{ textAlign:"center" }} selectedKeys={[route]} mode="horizontal">
           <Menu.Item key="/">
-            <Link onClick={()=>{setRoute("/")}} to="/">MultiSigWallet</Link>
+            <Link onClick={()=>{setRoute("/")}} to="/">ServiceChain</Link>
           </Menu.Item>
           <Menu.Item key="/hints">
             <Link onClick={()=>{setRoute("/hints")}} to="/hints">Hints</Link>
@@ -137,7 +137,21 @@ function App() {
                 and give you a form to interact with it locally
             */}
             <Contract
-              name="MultiSigWallet"
+              name="Tipping"
+              signer={userProvider.getSigner()}
+              provider={localProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+            />
+            <Contract
+              name="Rating"
+              signer={userProvider.getSigner()}
+              provider={localProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+            />
+            <Contract
+              name="Log"
               signer={userProvider.getSigner()}
               provider={localProvider}
               address={address}

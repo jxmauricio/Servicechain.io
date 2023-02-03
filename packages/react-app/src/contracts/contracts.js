@@ -1,1 +1,1 @@
-module.exports = ["MultiSigWallet"];
+module.exports = ["Log","Rating","Tipping"];

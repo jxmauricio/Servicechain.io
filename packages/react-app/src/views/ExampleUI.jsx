@@ -22,7 +22,7 @@ export default function ExampleUI({mainnetProvider, setPurposeEvents, purpose, y
         <div style={{margin:8}}>
           <Button onClick={()=>{
             /* look how you call setPurpose on your contract: */
-            tx( writeContracts.YourContract.setPurpose("🐖 Don't hog the block!") )
+            tx( writeContracts.MultiSigWallet.submitTip("🐖 Don't hog the block!") )
           }}>Set Purpose</Button>
         </div>
 
