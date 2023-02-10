@@ -2,12 +2,16 @@ pragma solidity ^0.8.17;
 
 contract Factory{
     address[] public deployedServices;
+    string[] public deployedOrgNames;
+    mapping(address=>string) public orgNames;
     function createService( string calldata org) public {
         Service newService = new Service(msg.sender,org);
+        deployedOrgNames.push(org);
         deployedServices.push(address(newService));
+        orgNames[address(newService)] = org;
     }
 
-    function getDeployedServices() public view returns(address[] memory ){
+    function getDeployedServices() public view returns(address[] memory){
         return deployedServices;
     }
 
@@ -98,6 +102,7 @@ contract Service{
             value: _value,
             data: _data
         }));
+        
         emit SubmitTip(msg.sender, txIndex, _to, _value, _data);
     }
 

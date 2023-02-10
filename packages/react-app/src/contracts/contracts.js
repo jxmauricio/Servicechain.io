@@ -1,1 +1,0 @@
-module.exports = ["Log","Rating","Tipping"];
