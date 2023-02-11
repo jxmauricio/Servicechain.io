@@ -30,6 +30,7 @@ contract Service{
         bytes data;
     }
     event Deposit(address indexed sender, uint amount, uint balance);
+    event submitRating(address indexed sender, address indexed recipient, uint rating);
     event SubmitTip(
         address indexed owner,
         uint indexed txIndex,
@@ -68,6 +69,7 @@ contract Service{
 
 //Rating
     function sendRatings(address customer,address waiter,uint rating) public {
+        emit submitRating(customer,waiter,rating);
         ratings[waiter].push(customerRating(customer,rating));
     }
 
