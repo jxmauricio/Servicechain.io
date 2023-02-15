@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {auth} from '../config/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'next/router';
+import checkUser from '@/helper/checkUser';
 function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -12,9 +13,10 @@ function Login() {
         
         try{
             await signInWithEmailAndPassword(auth,email,password);
-            router.push('/userIdentification');
+            
         } catch (error){
             console.error(error);
+
         }
       }
 
