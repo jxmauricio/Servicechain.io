@@ -10,6 +10,11 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import UserChoice from './UserChoice';
 
 function Signup(props) {
+  //these ...isFinished states are used to conditionally render each part of the sign up page
+  //1. Users have to input accounts details (firstIsFinsihed gets set to true)
+  //2. Users have to connect wallet to metamask(secondIsFinished gets set to true)
+  //3. Users have to choose their tole(thirdIsfinished gets set to true)
+  //after each of these steps the preceeding components disappear, and in the last step data is sent to firestore to cache data about the user 
   const [firstIsFinished, setFirstIsFinished] = useState(false);
   const [secondIsFinished, setSecondIsFinished] = useState(false);
   const [thirdIsFinished, setThirdIsFinished] = useState(false);
@@ -20,7 +25,7 @@ function Signup(props) {
     email:'',
     password:'',
     publicAddress:''});
-
+    
     const signUp = async()=>{
         const {first,last,email,password} = userInfo;
         
@@ -39,7 +44,7 @@ function Signup(props) {
 
 
 
-
+  //logic explained above is written here 
   return (
     <div>
       {!firstIsFinished && <Form onSubmit={signUp} style={{top:'10px'}}>

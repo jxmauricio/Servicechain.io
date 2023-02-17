@@ -9,7 +9,7 @@ const provider = new HDWalletProvider(
   // remember to change this to your own endpoint!
 );
 const web3 = new Web3(provider);
- 
+//deploys our contract onto the test network
 const deploy = async () => {
   const accounts = await web3.eth.getAccounts();
  

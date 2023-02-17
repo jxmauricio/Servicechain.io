@@ -4,66 +4,61 @@ import { Card,Button,Form,Input,Message,Container } from "semantic-ui-react";
 import 'semantic-ui-css/semantic.min.css'
 import Link from 'next/link';
 import web3 from '@/ethereum/web3';
+import {auth, db} from '../config/firebase'
+import { getDoc,setDoc,doc, collection, addDoc } from 'firebase/firestore';
+import { useAppContext } from '@/context/AppContext';
+import ServiceCreation from '@/components/ServiceCreation';
 
+
+
+//This page renders out the "home" page of our website
 export default function Home(props) {
   const [orgName, setOrgName] = useState('');
-  const [error,setError] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  const {userData,setUserData} = useAppContext();
+  
+  console.log(userData.publicAddress)
+  //reference the users collection in firestore 
+  const ref = doc(db,'Users',userData.publicAddress)
+  //loads the organizations that have been created into cards 
   const renderServices=()=>{
     const addresses = props.services;
     console.log(props.orgNames)
     let items = addresses.map((address,index)=>{
         return{
             header: props.orgNames[index],
-            description:<Link href={`/${address}`}>Address: {address}</Link>,
+            description:<Link href={userData.role=='customer'? `/${address}`:`/${address}/hours`}>
+              <Button onClick={()=>{setUserData(prev=>{ 
+                setDoc(ref,{orgAddress:address},{merge:true})
+                return {...prev,orgAddress:address}})
+              }
+                } primary>
+                Choose Organization
+              </Button>
+              </Link>,
             fluid:true
         };
     });
     return <Card.Group items={items} />
   }
 
-  const onSubmit = async(event)=>{
-    event.preventDefault();
-    setLoading(true);
-    setError('');
-    try{
-        const accounts = await web3.eth.getAccounts();
-        await factory.methods.createService(orgName)
-        .send({
-            from:accounts[0]
-            });
-    } catch(err){
-        setError(err.message);
-
-    }
-    setLoading(false);
-  }
-
-
-
+  //renders ServiceCreation component if the user is a manager(meaning the manager should only be allowed to create organizations)
+  //If the user is not a manager they get exposed to the organizations that have been created and are exposed to it 
   return (
     <Container>
-        <h3>Create a Service</h3>
-        <Form onSubmit={onSubmit} error={error ? true : false}>
-            <Form.Field>
-                <label>Organization Name</label>
-                <Input
-                 label = 'wei'
-                 labelPosition='right'
-                 value ={orgName}
-                 onChange={event=>setOrgName(event.target.value)}
-                />
-            </Form.Field>
-            <Message error header = 'Oops!' content = {error}/>
-            <Button primary loading={loading}>Create!</Button>
-        </Form>
-      <h1>Organizations</h1>
-      {renderServices()}
+      {userData.role =='manager' && <ServiceCreation setOrgName={setOrgName}/>}
+      {userData.role !='manager' &&
+      <div>
+        <h1>Organizations</h1>
+        {renderServices()}
+      </div> 
+      }
       
     </Container>
   )
 }
-
+//renders the services that have been deployed and their respective orgnames
+//passes the data as props to the component above 
 Home.getInitialProps = async()=>{
     const services = await factory.methods.getDeployedServices().call();
     console.log(factory.methods.getDeployedServices());

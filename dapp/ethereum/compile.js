@@ -1,3 +1,6 @@
+//this file uses solc to compile our contract so that we can get the abi and bytecode
+
+
 const path = require("path");
 const solc = require("solc");
 const fs = require("fs-extra");

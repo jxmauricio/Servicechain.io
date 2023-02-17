@@ -3,8 +3,10 @@ pragma solidity ^0.8.17;
 contract Factory{
     address[] public deployedServices;
     string[] public deployedOrgNames;
+    
     mapping(address=>string) public orgNames;
     function createService( string calldata org) public {
+
         Service newService = new Service(msg.sender,org);
         deployedOrgNames.push(org);
         deployedServices.push(address(newService));
