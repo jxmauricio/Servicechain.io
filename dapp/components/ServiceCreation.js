@@ -1,5 +1,6 @@
-import React from 'react'
-import { Form,Button,Message,label } from 'semantic-ui-react'
+import React,{useState} from 'react'
+import { Form,Button,Message,label, Input } from 'semantic-ui-react'
+
 function ServiceCreation(props) {
   const {setOrgName} = props;
   //used to handle errors

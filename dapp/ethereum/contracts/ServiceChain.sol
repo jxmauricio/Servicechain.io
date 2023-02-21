@@ -3,10 +3,10 @@ pragma solidity ^0.8.17;
 contract Factory{
     address[] public deployedServices;
     string[] public deployedOrgNames;
-    
+    address public manager;
     mapping(address=>string) public orgNames;
     function createService( string calldata org) public {
-
+        manager = msg.sender;
         Service newService = new Service(msg.sender,org);
         deployedOrgNames.push(org);
         deployedServices.push(address(newService));
@@ -31,8 +31,16 @@ contract Service{
         uint value;
         bytes data;
     }
+
+    struct hourLog {
+        uint date;
+        uint hour;
+        bool isApproved;
+    }
+
     event Deposit(address indexed sender, uint amount, uint balance);
     event submitRating(address indexed sender, address indexed recipient, uint rating);
+    event submitApproval(address indexed sender,address indexed recipient, uint indexed forDate, uint hour);
     event SubmitTip(
         address indexed owner,
         uint indexed txIndex,
@@ -43,29 +51,39 @@ contract Service{
 
 
     Transaction[] public transactions;
-    mapping(address=>uint[]) public hourLog;
+    mapping(address=>hourLog[]) public empHours;
     mapping(address=>customerRating[]) public ratings;
     string public org;
-    address public creator;
+    address public manager;
 
 
-    constructor(address creator, string memory org) {
-        creator = creator;
-        org = org;
+    constructor(address sender, string memory organization) {
+        manager=sender;
+        org = organization;
     }
-//Logging
-    function enterHours(uint value) public{
-        hourLog[msg.sender].push(value);
+    //Logging
+    //Allow a given employee to request hours across 7 different days for each day of the week 
+    function requestHours(uint value) public{
+        //Can only push new hours if the previous was approved or it is a new request
+        require(empHours[msg.sender].length < 8);
+        empHours[msg.sender].push(hourLog(block.timestamp,value,false));
     }
-    function getTotalHours(address waiter) public view returns(uint vals){
-        uint sum = 0;
-        for(uint i=0;i<hourLog[waiter].length;i++){
-            sum+=hourLog[waiter][i];
+    //Manager is given the array of pending requests for a given waiter
+    //the logic on frontend is to render the requests and assign indices to each request and when apporved is clicked delete the entry at the given index
+    function confirmHours(address waiter,uint index) public{
+        require(msg.sender == manager,"You are not the manager");
+        //send the event to this contracts log for it to be saved and allows us to retrieve the data on a waiter 
+        emit submitApproval(msg.sender,waiter,empHours[waiter][index].date, empHours[waiter][index].hour);
+        //deletes the entry at a specific index
+        for(uint i =index;i<empHours[waiter].length-1;i++){
+            empHours[waiter][i] = empHours[waiter][i+1];
         }
-        return sum;
+        empHours[waiter].pop(); 
+        empHours[waiter][index].isApproved= true;      
     }
-    function getHourLog(address waiter) public view returns(uint[] memory){
-        return hourLog[waiter];
+    //gives us the pending requests of a waiter;zzz
+    function getHourLog(address waiter) public view returns(hourLog[] memory){
+        return empHours[waiter];
 
     }
 

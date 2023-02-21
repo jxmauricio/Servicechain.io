@@ -9,6 +9,7 @@ function UserChoice() {
   const {setUserData,userData,currWeb3} = useAppContext();
   const router = useRouter();
   //we use the public address of the users metamask account as a unique identifier in firestore
+  console.log(userData.publicAddress)
   const userCollection = doc(db,"Users",userData.publicAddress);
 
   //Once role is set to state then the useEffect runs and sends data to firestore about the user
