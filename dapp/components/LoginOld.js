@@ -1,4 +1,4 @@
-import React,{useEffect, useState} from 'react'
+import React,{useState} from 'react'
 import { Form,Button,Container } from 'semantic-ui-react';
 import Link from 'next/link';
 import {auth} from '../config/firebase';
@@ -9,37 +9,32 @@ import { db } from '../config/firebase';
 import { doc,collection,getDoc,query,where } from 'firebase/firestore';
 import connectWallet from '@/helper/connectWallet';
 import { useAppContext } from '@/context/AppContext';
-import { useAuth } from '@/context/AuthContext';
-function Login() {
-    const {user,login,logout,signup} = useAuth();
+function LoginOld() {
     const [currEmail, setCurrEmail] = useState('');
     const [password, setPassword] = useState('');
+    const {setUserData,userData} = useAppContext();
     const router = useRouter();
-    
-    useEffect(() => {
-      const enterHub = async()=>{
-        if (user){
-            router.push(`${user.uid}/hub`);
-        } else {
-            null
-        }
-      }
-    enterHub()
-    } , [user])
-    
-    const handleLogin = async()=>{
+   
+    const signIn = async()=>{
         try{
-            console.log(currEmail,password)
-            await login(currEmail, password);
-          
+            const docRef = doc(db,'Users',currEmail);
+            const docSnap = await getDoc(docRef);
+            //signs up the user into our authentication system then pushes them to our home page 
+        
+            await signInWithEmailAndPassword(auth, currEmail, password);
+            
+            const {email,firstName,lastName,orgAddress,publicAddress,role} = docSnap.data();
+            setUserData({email,firstName,lastName,publicAddress,role})
+            // router.push('/hub')
         } catch (error){
             console.error(error);
 
         }
       }
+
   return (
    
-        <Form onSubmit={handleLogin} style={{top:'10px'}}>
+        <Form onSubmit={signIn} style={{top:'10px'}}>
             <Form.Input  label='Email' placeholder='Email' onChange={e=>setCurrEmail(e.target.value)}/>
             <Form.Input  label='Password' placeholder='Password' onChange={e=>setPassword(e.target.value)}/>
             <Button>Login!</Button>
@@ -49,4 +44,4 @@ function Login() {
 )
 }
 
-export default Login;
+export default LoginOld;

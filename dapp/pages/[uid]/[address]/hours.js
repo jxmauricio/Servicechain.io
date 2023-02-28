@@ -7,26 +7,33 @@ import { useAppContext } from '@/context/AppContext';
 import service from '@/ethereum/service';
 import factory from '@/ethereum/factory';
 import web3 from '@/ethereum/web3';
+import { db } from '@/config/firebase';
+import { doc,getDoc } from 'firebase/firestore';
+import { auth } from '@/config/firebase';
+import { options,usdToWei,weiToUsd } from '@/helper/conversions';
+import axios from 'axios';
 function hours(props) {
   //function gets the days of the week and puts it in an array 
-  const {address,orgName,currentContract} = props;
-  const {currWeb3,userData} = useAppContext();
+  const {address,orgName,currentContract,userData,marketPrice} = props;
   const [requests, setRequests] = useState([])
   const [approvedRequests, setApprovedRequests] = useState([])
   const [startDate, setStartDate] = useState(new Date());
   const [hours, setHours] = useState(0);
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false);
+  const [deniedRequests, setDeniedRequests] = useState([])
+  const [estimatedPayment,setEstimatedPayment] = useState([]);
 
-
+  console.log(marketPrice)
   useEffect(() => {
       const fetchRequests = async()=>{
-      const accounts = await web3.eth.getAccounts();
-      const hourRequests = await service(address).methods.getHourLog(accounts[0]).call();
-
-      const fetchApprovedRequests = await service(address).getPastEvents('submitApproval',{filter: {recipient:accounts[0]}, fromBlock:0});
+      const hourRequests = await service(address).methods.getHourLog(userData.publicAddress).call();
+      console.log(hourRequests);
+      const fetchApprovedRequests = await service(address).getPastEvents('submitApproval',{filter: {recipient:userData.publicAddress,isApproved:true}, fromBlock:0});
+      const fetchDeniedRequests = await service(address).getPastEvents('submitApproval',{filter: {recipient:userData.publicAddress,isApproved:[false]}, fromBlock:0});
+      
+      setDeniedRequests(fetchDeniedRequests)
       setApprovedRequests(fetchApprovedRequests);
-      console.log(fetchApprovedRequests);
       setRequests(hourRequests);
 
       
@@ -37,8 +44,8 @@ function hours(props) {
   var onSubmit = async()=>{
     setLoading(true);
     try {
-      const accounts = await web3.eth.getAccounts();
-      await service(address).methods.requestHours(hours).send({from:accounts[0]});
+      // const accounts = await web3.eth.getAccounts();
+      await service(address).methods.requestHours(hours).send({from:userData.publicAddress});
       
     } catch (error) {
       setError(error.message);
@@ -46,12 +53,13 @@ function hours(props) {
     setLoading(false);
   }
   
- 
+    console.log(marketPrice)
     let renderPendingRequests = requests.map((struct)=>{
       return (
       <Table.Row>
         <Table.Cell>{new Date(struct.date*1000).toLocaleDateString("en-US")}</Table.Cell>
         <Table.Cell>{struct.hour}</Table.Cell>
+        <Table.Cell>{weiToUsd(struct.estimatedPayement,marketPrice)}</Table.Cell>
         <Table.Cell><Icon name='wait'/><label>Pending</label></Table.Cell>
       </Table.Row>
       )
@@ -62,12 +70,22 @@ function hours(props) {
       <Table.Row>
         <Table.Cell>{new Date(event.returnValues.forDate*1000).toLocaleDateString("en-US")}</Table.Cell>
         <Table.Cell>{event.returnValues.hour}</Table.Cell>
+        <Table.Cell>${weiToUsd(event.returnValues.amountPaid,marketPrice) }</Table.Cell>
         <Table.Cell><Icon name='check circle' color='green'/><label>Approved</label></Table.Cell>
       </Table.Row>
       )
     });
-
-
+    let renderDeniedRequests = deniedRequests.map((event)=>{
+      return (
+      <Table.Row>
+        <Table.Cell>{new Date(event.returnValues.forDate*1000).toLocaleDateString("en-US")}</Table.Cell>
+        <Table.Cell>{event.returnValues.hour}</Table.Cell>
+        <Table.Cell>{weiToUsd(event.returnValues.amountPaid,marketPrice) }</Table.Cell>
+        <Table.Cell><Icon name='dont' color='red'/><label>Denied</label></Table.Cell>
+      </Table.Row>
+      )
+    });
+    
   return (
     <Container style={{'margin-top':'20px'}}>
       <h3>Hour Request Form For {props.orgName}</h3>
@@ -91,12 +109,14 @@ function hours(props) {
       <Table.Row>
         <Table.HeaderCell>Date</Table.HeaderCell>
         <Table.HeaderCell>Hours Requested</Table.HeaderCell>
+        <Table.HeaderCell>Estimated Payement</Table.HeaderCell>
         <Table.HeaderCell>Status</Table.HeaderCell>
       </Table.Row>
     </Table.Header>
     <Table.Body>
     {renderPendingRequests}
     {renderApprovedRequests}
+    {renderDeniedRequests}
     </Table.Body>
       
     </Table>
@@ -105,12 +125,17 @@ function hours(props) {
 }
 
 hours.getInitialProps = async (props)=>{
-  const {address} = props.query;
- console.log(await web3.eth.getAccounts());
+  const {address,uid} = props.query;
+  const ref = doc(db,'Users',uid)
+  const snapShot = await getDoc(ref);
+  const userData = snapShot.data()
 
-  // 
-  // await currentContract.methods.sendRatings('0x875439656098eBAF5F9d1908441Ab29C4A8Eb96A','0x8d77A1962a6214d7f5FDEd8364eD4260833f06E8',2).send({from:accounts[0]});
+  const response = await axios.request(options);
+  const marketPrice = response.data.ethereum.usd
+
   const orgName = await factory.methods.orgNames(address).call();
-  return {address,orgName}
+
+
+  return {address,orgName,userData,marketPrice}
 }
 export default hours;

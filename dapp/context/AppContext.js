@@ -11,6 +11,7 @@ export function AppWrapper({ children }) {
     role:'',
     publicAddress:''
   })
+  console.log(userData);
   const [currWeb3,setCurrWeb3] = useState('');
   let sharedState = {userData,setUserData,currWeb3,setCurrWeb3};
   

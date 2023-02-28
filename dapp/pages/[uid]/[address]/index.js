@@ -3,7 +3,7 @@ import { Button } from 'semantic-ui-react';
 import 'semantic-ui-css/semantic.min.css'
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import factory from '../../ethereum/factory';
+import factory from '../../../ethereum/factory';
 function hub(props) {
   //gets our current url
   const {asPath} = useRouter();
@@ -31,10 +31,10 @@ function hub(props) {
   )
 }
 hub.getInitialProps=async(props)=>{
-  const address = props.query.address;
+  const {uid,address} = props.query.address;
   console.log(address)
   const orgName = await factory.methods.orgNames(address).call() 
-  return {orgName}
+  return {orgName,uid}
 }
 
 export default hub;

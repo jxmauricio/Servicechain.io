@@ -3,23 +3,24 @@ import { useAppContext } from '@/context/AppContext';
 import { Button } from 'semantic-ui-react';
 import connectWallet from '@/helper/connectWallet';
 function ConnectWallet(props) {
-  const {setCurrWeb3,setUserData,userData} = useAppContext();
+  const {setUserInfo,userInfo,setSecondIsFinished,setThirdIsFinished} = props;
+  
   useEffect(() => {
     const changePage = ()=>{
-        if (userData.publicAddress){
-          props.setSecondIsFinished ? props.setSecondIsFinished(prev=>!prev):null;
-          props.setThirdIsFinished(true)
+        if (userInfo.publicAddress){
+          console.log("USER INFO CHANGED"+`${userInfo.publicAddress}`);
+          setSecondIsFinished(false);
+          setThirdIsFinished(true)
         }
     }
     changePage();
-  }, [userData])
-  
+  }, [userInfo])
+   
   const onClick = async()=>{
       try {
           const web3 = await connectWallet();
-          setCurrWeb3(web3);
           const accounts = await web3.eth.getAccounts();
-          setUserData(prev=>{return{...prev,publicAddress:accounts[0]}})    ;
+          setUserInfo(prev=>{return{...prev,publicAddress:accounts[0]}});
       } catch (error) {
           console.error(error);
       }   

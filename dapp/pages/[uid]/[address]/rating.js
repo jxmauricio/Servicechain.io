@@ -1,6 +1,6 @@
 import {React,useState} from 'react'
-import service from '../../ethereum/service';
-import factory from '../../ethereum/factory'
+import service from '../../../ethereum/service';
+import factory from '../../../ethereum/factory'
 import web3 from '@/ethereum/web3';
 import { Button,Form,Input,Message } from 'semantic-ui-react'
 import 'semantic-ui-css/semantic.min.css';
