@@ -48,7 +48,7 @@ contract Service{
 
     Transaction[] public transactions;
     mapping(address=>hourLog[]) public empHours;
-    mapping(address=>customerRating[]) public ratings;
+    
     string public org;
     address public manager;
     uint public hourlyRate;
@@ -103,10 +103,9 @@ contract Service{
     }
 
     //Rating
-    function sendRatings(address customer,address waiter,uint rating) public {
+    function sendRatings(address waiter,uint rating) public {
         require(rating >= 0 && rating <=5);
-        emit submitRating(customer,waiter,rating);
-        ratings[waiter].push(customerRating(customer,rating));
+        emit submitRating(msg.sender,waiter,rating);
     }
     //called to send the total bill
     function deposit() public payable {
