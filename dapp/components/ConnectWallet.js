@@ -1,5 +1,4 @@
 import React,{useEffect} from 'react'
-import { useAppContext } from '@/context/AppContext';
 import { Button } from 'semantic-ui-react';
 import connectWallet from '@/helper/connectWallet';
 function ConnectWallet(props) {
@@ -27,7 +26,13 @@ function ConnectWallet(props) {
     }
   
   return (
-    <div><Button onClick={onClick}>Connect Wallet</Button></div>
+    <div style={{}}>
+      <svg width="200" height="200">       
+        <image href="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" src="metamask" width="200" height="200"/>    
+      </svg>
+      <Button onClick={onClick}>Connect Wallet</Button>
+      
+      </div>
   )
 }
 

@@ -5,11 +5,10 @@ import { useRouter } from 'next/router';
 import { useAuth } from '@/context/AuthContext';
 //this is the last component that is rendered after the signup flow
 function UserChoice(props) {
-  const {setUserInfo,userInfo} = props
-  const {signUp} = useAuth();
+  const {setUserInfo,userInfo,setFourthIsFinished,setThirdIsFinished} = props
+  const {signUp,setUser} = useAuth();
   //we use the public address of the users metamask account as a unique identifier in firestore
   const handleClick  = async(e)=>{
-    console.log(e.target.value);
     setUserInfo(prev => {return {...prev,role:e.target.value}});
     await signUp(userInfo.email,userInfo.password);
   }

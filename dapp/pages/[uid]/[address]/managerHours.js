@@ -3,7 +3,6 @@ import DatePicker from 'react-datepicker';
 import {Form,Table,Message,Input,Button,Container,Icon,Dropdown} from 'semantic-ui-react';
 import 'semantic-ui-css/semantic.min.css'
 import "react-datepicker/dist/react-datepicker.css";
-import { useAppContext } from '@/context/AppContext';
 import service from '@/ethereum/service';
 import factory from '@/ethereum/factory';
 import web3 from '@/ethereum/web3';
@@ -14,7 +13,6 @@ import axios from 'axios';
 function hours(props) {
   //function gets the days of the week and puts it in an array 
   const {address,orgName,currentContract} = props;
-  const {currWeb3,userData} = useAppContext();
   const [requests, setRequests] = useState([])
   const [approvedRequests, setApprovedRequests] = useState([])
   const [startDate, setStartDate] = useState(new Date());
@@ -32,13 +30,13 @@ function hours(props) {
       setMarketPrice(response.data.ethereum.usd);
 
       const usersRef = collection(db,'Users');
-      const q = query(usersRef,where("orgAddress","==",address));
+      const q = query(usersRef,where("orgAddress","==",address),where("role","==","employee"));
       const querySnapshot = await getDocs(q);
       const datas = []
       querySnapshot.forEach((doc)=>{
         const data = doc.data();
-        datas.push({ key:`${data.firstName} ${data.lastName}`,
-        text: `${data.firstName} ${data.lastName}`,
+        datas.push({ key:`${data.first} ${data.last}`,
+        text: `${data.first} ${data.last}`,
         value: `${data.publicAddress}`});
          
       });
@@ -77,7 +75,7 @@ function hours(props) {
       <Table.Row>
         <Table.Cell>{new Date(struct.date*1000).toLocaleDateString("en-US")}</Table.Cell>
         <Table.Cell>{struct.hour}</Table.Cell>
-        <Table.Cell>{weiToUsd(struct.estimatedPayement,marketPrice)}</Table.Cell>
+        <Table.Cell>${weiToUsd(struct.estimatedPayement,marketPrice)}</Table.Cell>
         <Table.Cell><Button value = {index} onClick={(e)=>onApprove(e.target.value)} color='green'>Approve</Button></Table.Cell>
         <Table.Cell><Button value = {index} onClick={(e)=>onDeny(e.target.value)} color ='red'>Deny</Button></Table.Cell>
       </Table.Row>
@@ -86,14 +84,14 @@ function hours(props) {
 
 
 
-    console.log(empOptions);
+    console.log(empOptions.length);
   return (
-    <Container style={{'margin-top':'20px'}}>
+    <Container style={{'margin-top':'20px'}} textAlign='center'>
       <h3>Pending Hour Request For {props.orgName}</h3>
-      Show pending requests from {' '}
      
-      <Dropdown inline options = {empOptions} onChange={(event,data)=>{setEmpFilter(data.value),setError('')}}/>
+      <Dropdown placeholder='Select Employee' selection options = {empOptions} onChange={(event,data)=>{setEmpFilter(data.value),setError('')}}/>
       {
+      empOptions.length==0 ? <Message header='No Employees' content='Comeback when you have hired!'/> :
       error ? <Message header = "Please Pick An Employee"/>:
       <Table>
       <Table.Header>

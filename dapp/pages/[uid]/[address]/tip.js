@@ -6,22 +6,23 @@ import service from '@/ethereum/service';
 import factory from '@/ethereum/factory';
 import web3 from '@/ethereum/web3';
 import { db } from '@/config/firebase';
-import { collection, doc,getDocs,query,where } from 'firebase/firestore';
+import { collection, doc,getDocs,query,where,getDoc } from 'firebase/firestore';
 import { auth } from '@/config/firebase';
 import { usdToWei } from '@/helper/conversions';
+import { useAuth } from '@/context/AuthContext';
 function tip(props) {
   const [totalAmount, setTotalAmount] = useState("");
-  // const [empOptions, setEmpOptions] = useState([])
-  const {empOptions,address,marketPrice} = props;
+  
+  const {empOptions,address,marketPrice,userData} = props;
   const [selectedEmp,setSelectedEmp] = useState('');
-  console.log(selectedEmp);
+  
   
   const onSubmit = async(gratuity)=>{
     const {tip,bill} = calculateTipAndBill(totalAmount,gratuity);
-    const accounts = await web3.eth.getAccounts();
     console.log(tip,bill);
-    await service(address).methods.sendTip(selectedEmp).send({from:accounts[0],value:usdToWei(tip,marketPrice)});
-    await service(address).methods.deposit().send({from:accounts[0],value:usdToWei(bill,marketPrice)});
+    console.log(address,userData.publicAddress,selectedEmp);
+    await service(address).methods.sendTip(selectedEmp).send({from:userData.publicAddress,value:usdToWei(tip,marketPrice)});
+    await service(address).methods.deposit().send({from:userData.publicAddress,value:usdToWei(bill,marketPrice)});
   }
 
   const calculateTipAndBill= (billAmount,gratuity)=>{
@@ -43,9 +44,11 @@ function tip(props) {
           placeholder='$'
           type='number' 
           value={totalAmount} onChange={(e)=>setTotalAmount(parseInt(e.target.value))}></Input>
+          <Container textAlign='center' style={{marginTop:'20px'}}>
           <Button value = {.15} onClick = {(e,d)=>onSubmit(d.value)}>15% Gratuity<Divider horizontal></Divider><label>You will pay: {Math.round(totalAmount*1.15 *100)/100}</label></Button>
           <Button value = {.18} onClick = {(e,d)=>onSubmit(d.value)}>18% Gratuity<Divider horizontal></Divider><label>You will pay: {Math.round(totalAmount*1.18 *100)/100}</label></Button>
           <Button value = {.2} onClick = {(e,d)=>onSubmit(d.value)}>20% Gratuity<Divider horizontal></Divider><label>You will pay: {Math.round(totalAmount*1.2 *100)/100}</label></Button>
+          </Container>
         </Form.Field>
       </Form>
     </Container>
@@ -54,8 +57,12 @@ function tip(props) {
 
 tip.getInitialProps = async(props)=>{
   const {uid,address} = props.query;
+  const ref= doc(db,"Users",uid);
+  const snapShot = await getDoc(ref);
+  const userData = snapShot.data()
+
   const usersRef= collection(db,"Users");
-  const q = query(usersRef,where("orgAddress","==",address));
+  const q = query(usersRef,where("orgAddress","==",address),where("role","==","employee"));
   const querySnapshot = await getDocs(q);
   const empOptions = []
   querySnapshot.forEach((doc)=>{
@@ -69,6 +76,6 @@ tip.getInitialProps = async(props)=>{
   const response = await axios.request(options);
   const marketPrice = response.data.ethereum.usd
 
-  return {empOptions,address,marketPrice}
+return {empOptions,address,marketPrice,userData}
 }
 export default tip;

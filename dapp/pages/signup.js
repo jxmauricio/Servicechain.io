@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import InputInfo from '@/components/InputInfo';
 import { auth } from '@/config/firebase';
 import { useRouter } from 'next/router';
+
 function signup() {
   const {signUp,user} = useAuth();
   const router = useRouter();
@@ -31,10 +32,10 @@ function signup() {
         const data = {...userInfo};
         const userCollection = doc(db,"Users",user.uid);
         await setDoc(userCollection,data);
-        router.push('/hub'); 
+        router.push(`${user.uid}/home`);  
       }
     }
-    update();
+    update(); 
   }, [user])
 
 
@@ -44,7 +45,7 @@ function signup() {
     <Container>
         {!firstIsFinished && <InputInfo setFirstIsFinished={setFirstIsFinished} setSecondIsFinished={setSecondIsFinished} setUserInfo={setUserInfo} userInfo={userInfo}/>}
         {secondIsFinished && <ConnectWallet setSecondIsFinished={setSecondIsFinished}  setThirdIsFinished={setThirdIsFinished} setUserInfo={setUserInfo} userInfo={userInfo}/>}
-        {thirdIsFinished && <UserChoice setUserInfo={setUserInfo} userInfo={userInfo}/>}  
+        {thirdIsFinished && <UserChoice setUserInfo={setUserInfo} userInfo={userInfo} setThirdIsFinished={setThirdIsFinished}/>}  
     </Container>
   )
 }
