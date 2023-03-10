@@ -27,15 +27,20 @@ export function AuthContextProvider({ children }) {
     const [loading,setLoading] = useState(true);
     const [orgChosen,setOrgChosen] = useState(false);
     const [userData,setUserData] = useState({});
+    const [marketPrice,setMarketPrice] = useState(null);
     // console.log('orgChosen',orgChosen);
-    console.log(userData)
+    console.log(marketPrice);
     const router = useRouter();
     useEffect(()=>{
         const unsubscribe = onAuthStateChanged(auth,async(user)=>{
             if(user){
-                const ref = doc(db,'Users',user.uid)
+                const ref = doc(db,'Users',user.uid);
                 const snapShot = await getDoc(ref);
                 setUserData(snapShot.data());
+
+                const marketRef = doc(db,'MarketPrice','eth');
+                const marketSnapShot = await getDoc(marketRef);
+                setMarketPrice(marketSnapShot.data().usd);
                 setUser({
                     uid:user.uid,
                     email: user.email,
@@ -62,7 +67,7 @@ export function AuthContextProvider({ children }) {
         await signOut(auth);
     }
     return (
-      <AuthContext.Provider value={{user,login,signUp,logout,setUser,setOrgChosen,orgChosen,userData}}>
+      <AuthContext.Provider value={{user,login,signUp,logout,setUser,setOrgChosen,orgChosen,userData,marketPrice}}>
         {loading ? null : children}
       </AuthContext.Provider>
     );

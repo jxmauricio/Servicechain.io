@@ -9,12 +9,12 @@ import factory from '@/ethereum/factory';
 import web3 from '@/ethereum/web3';
 import { db } from '@/config/firebase';
 import { doc,getDoc } from 'firebase/firestore';
-import { auth } from '@/config/firebase';
+import { useAuth } from '@/context/AuthContext';
 import { options,usdToWei,weiToUsd } from '@/helper/conversions';
 import axios from 'axios';
 function hours(props) {
   //function gets the days of the week and puts it in an array 
-  const {address,orgName,currentContract,userData,marketPrice} = props;
+  const {address,orgName,currentContract,userData} = props;
   const [requests, setRequests] = useState([])
   const [approvedRequests, setApprovedRequests] = useState([])
   const [startDate, setStartDate] = useState(new Date());
@@ -23,7 +23,7 @@ function hours(props) {
   const [loading, setLoading] = useState(false);
   const [deniedRequests, setDeniedRequests] = useState([])
   const [estimatedPayment,setEstimatedPayment] = useState([]);
-
+  const {marketPrice} = useAuth();
   console.log(marketPrice)
   useEffect(() => {
       const fetchRequests = async()=>{
@@ -53,13 +53,13 @@ function hours(props) {
     setLoading(false);
   }
   
-    console.log(marketPrice)
+
     let renderPendingRequests = requests.map((struct)=>{
       return (
       <Table.Row>
         <Table.Cell>{new Date(struct.date*1000).toLocaleDateString("en-US")}</Table.Cell>
         <Table.Cell>{struct.hour}</Table.Cell>
-        <Table.Cell>{weiToUsd(struct.estimatedPayement,marketPrice)}</Table.Cell>
+        <Table.Cell>${weiToUsd(struct.estimatedPayement,marketPrice)}</Table.Cell>
         <Table.Cell><Icon name='wait'/><label>Pending</label></Table.Cell>
       </Table.Row>
       )
@@ -80,7 +80,7 @@ function hours(props) {
       <Table.Row>
         <Table.Cell>{new Date(event.returnValues.forDate*1000).toLocaleDateString("en-US")}</Table.Cell>
         <Table.Cell>{event.returnValues.hour}</Table.Cell>
-        <Table.Cell>{weiToUsd(event.returnValues.amountPaid,marketPrice) }</Table.Cell>
+        <Table.Cell>${weiToUsd(event.returnValues.amountPaid,marketPrice) }</Table.Cell>
         <Table.Cell><Icon name='dont' color='red'/><label>Denied</label></Table.Cell>
       </Table.Row>
       )

@@ -2,7 +2,7 @@ import {React,useEffect,useState} from 'react'
 import service from '../../../ethereum/service';
 import factory from '../../../ethereum/factory'
 import web3 from '@/ethereum/web3';
-import { Button,Container,Form,Input,Message,Dropdown,Rating } from 'semantic-ui-react'
+import { Button,Container,Form,Input,Message,Dropdown,Rating,Segment } from 'semantic-ui-react'
 import 'semantic-ui-css/semantic.min.css';
 import { useRouter } from 'next/router';
 import { options } from '@/helper/conversions';
@@ -54,7 +54,8 @@ function rating(props) {
 
 
   return (
-    <Container>
+    <Container textAlign='center'>
+      <Segment compact style={{margin:'auto'}}>
       <h3>For {props.orgName}</h3>
       <h3>Send A Rating!</h3>
       <Dropdown placeholder='Select Waiter' selection options = {empOptions} onChange={(event,data)=>{setEmpFilter(data.value),setError('')}}/>
@@ -65,18 +66,16 @@ function rating(props) {
             <Message error header = 'Oops!' content = {error}/>
             <Button primary loading={loading}>Submit Rating!</Button>
         </Form>
+        </Segment>
     </Container>
   )
 }
 //This connects the current service contract with the one clicked by our user
 rating.getInitialProps = async (props)=>{
     const {address} = props.query;
-    // const response = await axios.request(options);
-    // const marketPrice = response.data.ethereum.usd;
-    const marketPrice = 1600;
     const currentContract = service(address);
     // await currentContract.methods.sendRatings('0x875439656098eBAF5F9d1908441Ab29C4A8Eb96A','0x8d77A1962a6214d7f5FDEd8364eD4260833f06E8',2).send({from:accounts[0]});
     const orgName = await factory.methods.orgNames(address).call();
-    return {address,currentContract,orgName,marketPrice}
+    return {address,currentContract,orgName}
 }
 export default rating;

@@ -22,4 +22,4 @@ export const auth = getAuth(app);
 
 
 //connect firestore to our app 
-export const db = getFirestore(app)
+export const db = getFirestore(app);

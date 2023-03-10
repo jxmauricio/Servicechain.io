@@ -5,8 +5,7 @@ import { db } from '@/config/firebase';
 import { where,collection,query,getDoc,doc,getDocs } from 'firebase/firestore';
 import { Statistic,Container,Dropdown,Grid,Table,Icon,Segment,Rating, Message } from 'semantic-ui-react';
 import { weiToUsd } from '@/helper/conversions';
-import { options } from '@/helper/conversions';
-import axios from 'axios';
+import { useAuth } from '@/context/AuthContext';
 import factory from '@/ethereum/factory';
 import average from '@/helper/average';
 function myProfileCustomer(props) {
@@ -21,6 +20,7 @@ function myProfileCustomer(props) {
   const [numTips,setNumTips] = useState(0);
   const [totalTips,setTotalTips] = useState(0);
   const {items,userData} = props;
+  const {marketPrice} = useAuth();
   console.log(selectedOrg)
   useEffect(()=>{
     const getData = async()=>{
@@ -72,9 +72,9 @@ function myProfileCustomer(props) {
           const tip = fetchPastTips[i].returnValues.tipAmount
           const data = doc.data()
           pastTipsHistory.push(
-            {first:data.first,last:data.last,value:weiToUsd(tip,1600)}
+            {first:data.first,last:data.last,value:weiToUsd(tip,marketPrice)}
           )
-          totalTips = totalTips + weiToUsd(tip,1600);
+          totalTips = totalTips + weiToUsd(tip,marketPrice);
           i = i +1;
         });
         setTotalTips(totalTips);

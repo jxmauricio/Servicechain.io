@@ -1,5 +1,5 @@
 import React,{useEffect} from 'react'
-import { Button } from 'semantic-ui-react';
+import { Button,Container, Segment} from 'semantic-ui-react';
 import connectWallet from '@/helper/connectWallet';
 function ConnectWallet(props) {
   const {setUserInfo,userInfo,setSecondIsFinished,setThirdIsFinished} = props;
@@ -7,7 +7,6 @@ function ConnectWallet(props) {
   useEffect(() => {
     const changePage = ()=>{
         if (userInfo.publicAddress){
-          console.log("USER INFO CHANGED"+`${userInfo.publicAddress}`);
           setSecondIsFinished(false);
           setThirdIsFinished(true)
         }
@@ -26,13 +25,16 @@ function ConnectWallet(props) {
     }
   
   return (
-    <div style={{}}>
-      <svg width="200" height="200">       
-        <image href="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" src="metamask" width="200" height="200"/>    
-      </svg>
-      <Button onClick={onClick}>Connect Wallet</Button>
-      
-      </div>
+    <Segment compact='true'>
+      <Container textAlign='center' style={{margin:'auto'}}>
+        <svg width="200" height="200">       
+          <image href="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" src="metamask" width="200" height="200"/>    
+        </svg>
+        <Container>
+        <Button onClick={onClick}>Connect Wallet</Button>
+        </Container>
+      </Container>
+      </Segment>
   )
 }
 

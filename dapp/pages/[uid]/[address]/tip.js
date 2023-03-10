@@ -1,7 +1,5 @@
 import React, { useState,useEffect } from 'react'
-import {Form,Table,Message,Input,Button,Container,Icon,Divider,Dropdown} from 'semantic-ui-react';
-import axios from 'axios';
-import { options } from '@/helper/conversions';
+import {Form,Table,Segment,Input,Button,Container,Icon,Divider,Dropdown} from 'semantic-ui-react';
 import service from '@/ethereum/service';
 import factory from '@/ethereum/factory';
 import web3 from '@/ethereum/web3';
@@ -12,8 +10,8 @@ import { usdToWei } from '@/helper/conversions';
 import { useAuth } from '@/context/AuthContext';
 function tip(props) {
   const [totalAmount, setTotalAmount] = useState("");
-  
-  const {empOptions,address,marketPrice,userData} = props;
+  const {marketPrice} = useAuth();
+  const {empOptions,address,userData} = props;
   const [selectedEmp,setSelectedEmp] = useState('');
   
   
@@ -33,24 +31,33 @@ function tip(props) {
   }
 
   return (
-    <Container>
-      <Dropdown placeholder = "Select Waiter" selection options = {empOptions} onChange ={(event,data)=>{setSelectedEmp(data.value)}}/>
+    <Container textAlign='center'>
+      <Segment compact  textAlign='center'>
+      <Segment compact textAlign='center' style={{margin:'auto'}}>
+      <h2>Pick an Employee To Tip!</h2>
+      <Dropdown  placeholder = "Select Waiter" selection options = {empOptions} onChange ={(event,data)=>{setSelectedEmp(data.value)}}/>
+      </Segment>
+      <Segment>
       <Form onSubmit={onSubmit}>
         <Form.Field>
-          <label>Total Bill Amount</label>
-          <Input 
+          <h3>Total Bill Amount</h3>
+          <Input style ={{width:'50%'}}
           label = 'USD'
           labelPosition='right'
           placeholder='$'
           type='number' 
           value={totalAmount} onChange={(e)=>setTotalAmount(parseInt(e.target.value))}></Input>
-          <Container textAlign='center' style={{marginTop:'20px'}}>
+          
+          <Container textAlign='center' style={{marginTop:'20px', padding:'8px'}}>
+          
           <Button value = {.15} onClick = {(e,d)=>onSubmit(d.value)}>15% Gratuity<Divider horizontal></Divider><label>You will pay: {Math.round(totalAmount*1.15 *100)/100}</label></Button>
           <Button value = {.18} onClick = {(e,d)=>onSubmit(d.value)}>18% Gratuity<Divider horizontal></Divider><label>You will pay: {Math.round(totalAmount*1.18 *100)/100}</label></Button>
           <Button value = {.2} onClick = {(e,d)=>onSubmit(d.value)}>20% Gratuity<Divider horizontal></Divider><label>You will pay: {Math.round(totalAmount*1.2 *100)/100}</label></Button>
           </Container>
         </Form.Field>
       </Form>
+      </Segment>
+      </Segment>
     </Container>
   )
 }
@@ -73,9 +80,8 @@ tip.getInitialProps = async(props)=>{
     value: `${data.publicAddress}`});
   });
   
-  const response = await axios.request(options);
-  const marketPrice = response.data.ethereum.usd
 
-return {empOptions,address,marketPrice,userData}
+
+return {empOptions,address,userData}
 }
 export default tip;

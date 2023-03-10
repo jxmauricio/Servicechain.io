@@ -3,20 +3,21 @@ import service from '@/ethereum/service';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/config/firebase';
 import { doc,getDoc,collection,query, where,getDocs } from 'firebase/firestore';
-import { Table,Rating,Container,Grid,Statistic,Icon,Message } from 'semantic-ui-react';
+import { Table,Rating,Container,Grid,Statistic,Icon,Message,Segment,Label } from 'semantic-ui-react';
 import { weiToUsd } from '@/helper/conversions';
-import axios from 'axios';
-import { options } from '@/helper/conversions';
 import average from '@/helper/average';
-import MyProfileManager from './myProfileManager';
+import factory from '@/ethereum/factory';
 function myProfile(props) {
 const {user} = useAuth();
-const {fetchRatings,customerAddrs,pastRatingsHistory,pastTipsHistory,marketPrice,userData} = props
+const {fetchRatings,customerAddrs,pastRatingsHistory,pastTipsHistory,marketPrice,hourlyRate,orgname} = props
   return (
     <Container textAlign='center'> 
     {pastRatingsHistory.length ==0 && pastTipsHistory ==0 ? <Message header='Uh Oh!' content="Looks like you don't have any ratings or tips yet. Come back later when you do!"/>: 
     <Container>
-    <h1>Employee Statistics</h1>
+    <Segment>
+    <h1>Employee Statistics at {orgname}</h1>
+    <label>Pay at <Label tag>${hourlyRate}</Label></label>
+    </Segment>
     <Grid celled>
         <Grid.Row>
             <Grid.Column width = {11}>
@@ -89,9 +90,9 @@ const {fetchRatings,customerAddrs,pastRatingsHistory,pastTipsHistory,marketPrice
 
 myProfile.getInitialProps = async (props) => {
     //replace this later
-    // const response = await axios.request(options);
-    // const marketPrice = response.data.ethereum.usd
-    const marketPrice = 1600;
+  
+    let marketPrice = await getDoc(doc(db,'MarketPrice','eth'));
+    marketPrice = marketPrice.data().usd;
     const {address,uid} = props.query;
     const usersRef= doc(db,"Users",uid);
     const snapShot = await getDoc(usersRef);
@@ -132,8 +133,10 @@ myProfile.getInitialProps = async (props) => {
         });
     }
    
-    
-
-    return {fetchRatings,uid,address,pastRatingsHistory,pastTipsHistory,marketPrice,userData}
+    const orgname = await factory.methods.orgNames(userData.orgAddress).call();
+    let hourlyRate = await service(userData.orgAddress).methods.hourlyRate().call();
+    hourlyRate = weiToUsd(hourlyRate,marketPrice)
+    console.log(hourlyRate)
+    return {fetchRatings,uid,address,pastRatingsHistory,pastTipsHistory,marketPrice,userData,orgname,hourlyRate}
 }
 export default myProfile;

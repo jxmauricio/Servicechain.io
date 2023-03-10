@@ -7,6 +7,7 @@ import { Statistic,Container,Segment,Dropdown,Grid,Table,Icon,Rating,Message} fr
 import { weiToUsd } from '@/helper/conversions';
 import { options } from '@/helper/conversions';
 import axios from 'axios';
+import Deposit from '@/components/Deposit';
 import average from '@/helper/average';
 function myProfileManager(props) {
     //Balance of org
@@ -22,44 +23,47 @@ function myProfileManager(props) {
   useEffect(()=>{
         const fetchData = async()=>{
                 if (selectedEmp){
-
-                
-                //point to the data in the backend
-                const usersRef= doc(db,"Users",selectedEmp);
-                const snapShot = await getDoc(usersRef);
-                const userData = snapShot.data()
-                console.log(userData)
-                const fetchRatings = await service(address).getPastEvents('submitRating',{filter: {recipient:selectedEmp}, fromBlock:0});
-                const fetchTips = await service(address).getPastEvents('submitTip',{filter: {recipient:selectedEmp}, fromBlock:0});
-                //Used for mapping names 
-                const customerAddrs = fetchRatings.map(data=>{
-                    return data.returnValues.sender;
-                })
-                const ref = collection(db,"Users")
-                const q = query(ref,where("publicAddress","in",customerAddrs),where("role","==","customer"));
-                const querySnapshot = await getDocs(q);
-                const pastRatingsHistory = []
-                let i = 0;
-                querySnapshot.forEach((doc)=>{
-                  const rating = fetchRatings[i].returnValues.rating
-                  const data = doc.data()
-                  pastRatingsHistory.push(
-                    {first:data.first,last:data.last,value:rating}
-                  )
-                  i = i +1;
-                });
-                setPastRatingsHistory(pastRatingsHistory);
-                const pastTipsHistory = []
-                i = 0;
-                querySnapshot.forEach((doc)=>{
-                  const tips = weiToUsd(parseInt(fetchTips[i].returnValues.tipAmount),marketPrice);
-                  const data = doc.data();
-                  pastTipsHistory.push(
-                    {first:data.first,last:data.last,value:tips}
-                  )
-                  i = i +1;
-                });  
-                setPastTipsHistory(pastTipsHistory);
+                        //point to the data in the backend
+                        const usersRef= doc(db,"Users",selectedEmp);
+                        const snapShot = await getDoc(usersRef);
+                        const userData = snapShot.data()
+                        console.log(userData)
+                        const fetchRatings = await service(address).getPastEvents('submitRating',{filter: {recipient:selectedEmp}, fromBlock:0});
+                        const fetchTips = await service(address).getPastEvents('submitTip',{filter: {recipient:selectedEmp}, fromBlock:0});
+                        //Used for mapping names 
+                        const customerAddrs = fetchRatings.map(data=>{
+                        return data.returnValues.sender;
+                        })
+                        if (customerAddrs.length!=0) {
+                                const ref = collection(db,"Users")
+                                const q = query(ref,where("publicAddress","in",customerAddrs),where("role","==","customer"));
+                                const querySnapshot = await getDocs(q);
+                                const pastRatingsHistory = []
+                                let i = 0;
+                                querySnapshot.forEach((doc)=>{
+                                        const rating = fetchRatings[i].returnValues.rating
+                                        const data = doc.data()
+                                        pastRatingsHistory.push(
+                                        {first:data.first,last:data.last,value:rating}
+                                        )
+                                        i = i +1;
+                                });
+                                setPastRatingsHistory(pastRatingsHistory);
+                                const pastTipsHistory = []
+                                i = 0;
+                                querySnapshot.forEach((doc)=>{
+                                const tips = weiToUsd(parseInt(fetchTips[i].returnValues.tipAmount),marketPrice);
+                                const data = doc.data();
+                                pastTipsHistory.push(
+                                {first:data.first,last:data.last,value:tips}
+                                )
+                                i = i +1;
+                                });  
+                                setPastTipsHistory(pastTipsHistory);
+                        } else {
+                                setPastRatingsHistory([]);
+                                setPastTipsHistory([]);
+                        }  
                 }
         }
         fetchData();
@@ -68,10 +72,12 @@ function myProfileManager(props) {
     <Container textAlign='center'>
         Show me how data on {' '} 
         <Dropdown placeholder ='Employees' inline options={items} onChange ={(e,d)=>{setSelectedEmp(d.value)}}/>
-        {!selectedEmp ? <Message header='Uh Oh.' content='Pick An Employee to show data on them.'/> : 
+        {!selectedEmp ? <Message color='teal' header='Uh Oh.' content='Pick An Employee to show data on them.'/> : 
         <Segment>
         <Grid celled>
-                <Grid.Row>
+              <Grid.Row centered>
+              { pastRatingsHistory.length==0 ? <Message warning style={{width:'100%'}} header ='Uh Oh' content='No Rating Data on this Employee'/> : 
+                <>
                 <Grid.Column width = {11}>
                         <Container>  
                         <Table basic='very' celled collapsing>
@@ -100,9 +106,11 @@ function myProfileManager(props) {
                         <Statistic.Label>Average Rating</Statistic.Label>
                         </Statistic>
                         
-                </Grid.Column>
-                </Grid.Row>
-                <Grid.Row>
+                </Grid.Column></>}
+                </Grid.Row> 
+                <Grid.Row centered>
+                {pastTipsHistory.length==0 ? <Message warning style={{width:'100%'}} header ='Uh Oh' content='No Tip Data on this Employee'/> : 
+                <>
                 <Grid.Column width = {11}>
                 <Container>  
                         <Table basic='very' celled collapsing>
@@ -131,6 +139,7 @@ function myProfileManager(props) {
                         <Statistic.Label>Average Tips</Statistic.Label>
                 </Statistic>
                 </Grid.Column>
+                </> }
                 </Grid.Row>
         </Grid>
         </Segment>
@@ -153,7 +162,8 @@ function myProfileManager(props) {
                         <Statistic.Value>{numCustomers}</Statistic.Value>
                         <Statistic.Label>Number of Customers</Statistic.Label>
                 </Statistic>
-        </Segment>  
+        </Segment>
+        <Deposit orgAddress={address}/>  
     </Container>  
   )
 }

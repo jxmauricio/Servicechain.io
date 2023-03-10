@@ -21,6 +21,8 @@ const handleStatistics = ()=>{
  
 }
   return (
+    <>
+    {!userData ? null : 
     <Menu>
       <Menu.Item>
         <Link href= {`/${uid}/home`}>
@@ -35,16 +37,17 @@ const handleStatistics = ()=>{
       <Dropdown direction='left' icon='users'> 
         <Dropdown.Menu>
           <Dropdown.Item text ='Logout' onClick={()=>{router.push('/');logout();}}/>
-            {/* <Button onClick={()=>{router.push('/');logout();}} primary>Logout</Button> 
+            {/* <Button onClick={()=>{router.push('/');logout();}} pr imary>Logout</Button> 
           <Dropdown.Item/> */}
           <Dropdown.Item text ='My Statistics' onClick={handleStatistics}/>
         </Dropdown.Menu>
       </Dropdown>
     </Menu.Item>
     : null}
-  </Menu>
-  )
+  </Menu>}
+  </>
+  ) 
 }
 
 
-export default Navbar
+export default Navbar 

@@ -9,7 +9,8 @@ import web3 from '@/ethereum/web3';
 import { collection,getDocs,query,where } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import { options,weiToUsd } from '@/helper/conversions';
-import axios from 'axios';
+import { useAuth } from '@/context/AuthContext';
+import Deposit from '@/components/Deposit';
 function hours(props) {
   //function gets the days of the week and puts it in an array 
   const {address,orgName,currentContract} = props;
@@ -21,13 +22,10 @@ function hours(props) {
   const [loading, setLoading] = useState(false);
   const [empOptions, setEmpOptions] = useState([]);
   const [empFilter, setEmpFilter] = useState('');
-  const [marketPrice, setMarketPrice] = useState('');
+  const {marketPrice} = useAuth();
 
   useEffect(() => {
       const fetchRequests = async()=>{
-      // const accounts = await web3.eth.getAccounts();
-      const response = await axios.request(options);
-      setMarketPrice(response.data.ethereum.usd);
 
       const usersRef = collection(db,'Users');
       const q = query(usersRef,where("orgAddress","==",address),where("role","==","employee"));
@@ -86,13 +84,14 @@ function hours(props) {
 
     console.log(empOptions.length);
   return (
-    <Container style={{'margin-top':'20px'}} textAlign='center'>
+    <Container style={{'marginTop':'20px'}} textAlign='center'>
       <h3>Pending Hour Request For {props.orgName}</h3>
      
       <Dropdown placeholder='Select Employee' selection options = {empOptions} onChange={(event,data)=>{setEmpFilter(data.value),setError('')}}/>
       {
       empOptions.length==0 ? <Message header='No Employees' content='Comeback when you have hired!'/> :
       error ? <Message header = "Please Pick An Employee"/>:
+      requests.length ==0 ? <Message positive header='Way To Go!' content='There is no pending requests available.' /> :
       <Table>
       <Table.Header>
       <Table.Row>
@@ -107,9 +106,11 @@ function hours(props) {
     {renderPendingRequests}
     </Table.Body>
       
-    </Table>
+    </Table> 
     }
+  
     </Container>
+   
   )
 }
 

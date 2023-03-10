@@ -6,11 +6,13 @@ contract Factory{
     address public manager;
     mapping(address=>string) public orgNames;
     //in the front end we do all conversions to wei
-    function createService( string calldata org,uint hourRate) public {
+    function createService( string calldata org,uint hourRate) public payable{
         manager = msg.sender;
         Service newService = new Service(msg.sender,org,hourRate);
         deployedOrgNames.push(org);
-        deployedServices.push(address(newService));
+        address newContractAddr = address(newService);
+        deployedServices.push(newContractAddr);
+        newService.deposit{value:msg.value}();
         orgNames[address(newService)] = org;
     }
 
@@ -79,7 +81,7 @@ contract Service{
         //send the event to this contracts log for it to be saved and allows us to retrieve the data on a waiter 
         emit submitApproval(msg.sender,waiter,true,empHours[waiter][index].date, empHours[waiter][index].hour,hourlyRate * empHours[waiter][index].hour);
         //transfer funds to the waiter/need to charge the amount using front end
-        waiter.transfer(hourlyRate*15* empHours[waiter][index].hour);
+        waiter.transfer(hourlyRate* empHours[waiter][index].hour);
         //deletes the entry at a specific index
         for(uint i =index;i<empHours[waiter].length-1;i++){
             empHours[waiter][i] = empHours[waiter][i+1];
