@@ -43,9 +43,9 @@ contract Service{
     }
 
     event Deposit(address indexed sender, uint amount, uint balance,uint date);
-    event submitRating(address indexed sender, address indexed recipient, uint indexed rating);
+    event submitRating(address indexed sender, address indexed recipient,uint indexed date, uint rating);
     event submitApproval(address indexed sender,address indexed recipient, bool indexed isApproved,uint forDate,uint hour,uint amountPaid);
-    event submitTip(address indexed sender,address indexed recipient,uint tipAmount);
+    event submitTip(address indexed sender,address indexed recipient,uint indexed date ,uint tipAmount);
     event submitHourlyRate(address indexed sender,uint indexed date,uint hourlyRate);
 
     Transaction[] public transactions;
@@ -107,7 +107,7 @@ contract Service{
     //Rating
     function sendRatings(address waiter,uint rating) public {
         require(rating >= 0 && rating <=5);
-        emit submitRating(msg.sender,waiter,rating);
+        emit submitRating(msg.sender,waiter,block.timestamp,rating);
     }
     //called to send the total bill
     function deposit() public payable {
@@ -116,7 +116,7 @@ contract Service{
     //A payable function where the the frontend calls this function with a user and sends a value with the transaction 
     function sendTip(address payable recipient) public payable {
         recipient.transfer(msg.value);
-        emit submitTip(msg.sender, recipient, msg.value );
+        emit submitTip(msg.sender, recipient,block.timestamp, msg.value);
     }
 
     function getBalance() public view returns(uint) {
