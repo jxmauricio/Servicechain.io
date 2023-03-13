@@ -14,7 +14,7 @@ function tip(props) {
   const {empOptions,address,userData} = props;
   const [selectedEmp,setSelectedEmp] = useState('');
   
-  
+  console.log(totalAmount)
   const onSubmit = async(gratuity)=>{
     const {tip,bill} = calculateTipAndBill(totalAmount,gratuity);
     console.log(tip,bill);
@@ -25,7 +25,7 @@ function tip(props) {
 
   const calculateTipAndBill= (billAmount,gratuity)=>{
     const totalPrice = billAmount * (1+gratuity);
-    const tip = totalPrice * (gratuity);
+    const tip = Math.round(totalPrice * (gratuity)*100)/100;
     const bill = billAmount
     return {totalPrice,tip,bill}
   }

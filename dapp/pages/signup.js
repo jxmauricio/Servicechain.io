@@ -15,6 +15,7 @@ function signup() {
   const [firstIsFinished, setFirstIsFinished] = useState(false);
   const [secondIsFinished, setSecondIsFinished] = useState(false);
   const [thirdIsFinished, setThirdIsFinished] = useState(false);
+  const [finished,setFinished] = useState(false);
   //after states are filled push it into firestore
   const [userInfo, setUserInfo] = useState({
     first:'',
@@ -36,16 +37,16 @@ function signup() {
       }
     }
     update(); 
-  }, [user])
+  }, [finished])
 
 
 
-  console.log(secondIsFinished,thirdIsFinished);
+
   return (
     <Container>
         {!firstIsFinished && <InputInfo setFirstIsFinished={setFirstIsFinished} setSecondIsFinished={setSecondIsFinished} setUserInfo={setUserInfo} userInfo={userInfo}/>}
         {secondIsFinished && <ConnectWallet setSecondIsFinished={setSecondIsFinished}  setThirdIsFinished={setThirdIsFinished} setUserInfo={setUserInfo} userInfo={userInfo}/>}
-        {thirdIsFinished && <UserChoice setUserInfo={setUserInfo} userInfo={userInfo} setThirdIsFinished={setThirdIsFinished}/>}  
+        {thirdIsFinished && <UserChoice setUserInfo={setUserInfo} userInfo={userInfo} setThirdIsFinished={setThirdIsFinished} setFinished = {setFinished}/>}  
     </Container>
   )
 }

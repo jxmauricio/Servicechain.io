@@ -21,15 +21,15 @@ export function AuthContextProvider({ children }) {
     const errorCode = error.code;
     const errorMessage = error.message;
   });
-
+    
     //state that holds data we need to put in firebase user collection
     const [user,setUser] = useState(null)
     const [loading,setLoading] = useState(true);
     const [orgChosen,setOrgChosen] = useState(false);
     const [userData,setUserData] = useState({});
     const [marketPrice,setMarketPrice] = useState(null);
-    // console.log('orgChosen',orgChosen);
-    console.log(marketPrice);
+  
+  
     const router = useRouter();
     useEffect(()=>{
         const unsubscribe = onAuthStateChanged(auth,async(user)=>{
