@@ -7,9 +7,11 @@ import { Table,Rating,Container,Grid,Statistic,Icon,Message,Segment,Label } from
 import { weiToUsd } from '@/helper/conversions';
 import average from '@/helper/average';
 import factory from '@/ethereum/factory';
+import toDate from '@/helper/toDate';
 function myProfile(props) {
 const {user} = useAuth();
-const {fetchRatings,customerAddrs,pastRatingsHistory,pastTipsHistory,marketPrice,hourlyRate,orgname} = props
+const {fetchRatings,ratingCustomerAddrs,pastRatingsHistory,pastTipsHistory,marketPrice,hourlyRate,orgname} = props
+console.log(pastTipsHistory)
   return (
     <Container textAlign='center'> 
     {pastRatingsHistory.length ==0 && pastTipsHistory ==0 ? <Message header='Uh Oh!' content="Looks like you don't have any ratings or tips yet. Come back later when you do!"/>: 
@@ -20,16 +22,22 @@ const {fetchRatings,customerAddrs,pastRatingsHistory,pastTipsHistory,marketPrice
     </Segment>
     <Grid celled>
         <Grid.Row>
-            <Grid.Column width = {11}>
+        { pastRatingsHistory.length==0 ? <Message warning style={{width:'100%'}} header ='Uh Oh' content='No Rating Data just yet!'/> : 
+           <>
+           <Grid.Column width = {11}>
                 <Container>  
                 <Table basic='very' celled collapsing>
                 <Table.Header>
                 <Table.Row>
+                    <Table.HeaderCell>Date</Table.HeaderCell>
                     <Table.HeaderCell>Customer</Table.HeaderCell>
                     <Table.HeaderCell>Your Rating</Table.HeaderCell>
                 </Table.Row>
                 {pastRatingsHistory.map((data)=>(
                         <Table.Row>
+                        <Table.Cell>
+                            {toDate(data.date)}
+                        </Table.Cell>
                         <Table.Cell>
                             {data.first} {data.last}
                         </Table.Cell>
@@ -49,18 +57,25 @@ const {fetchRatings,customerAddrs,pastRatingsHistory,pastTipsHistory,marketPrice
                 </Statistic>
                 
             </Grid.Column>
+            </> }
         </Grid.Row>
         <Grid.Row>
+        {pastTipsHistory.length==0 ? <Message warning style={{width:'100%'}} header ='Uh Oh' content='No Tip Data just yet!'/> : 
+            <>
             <Grid.Column width = {11}>
             <Container>  
                 <Table basic='very' celled collapsing>
                 <Table.Header>
                 <Table.Row>
+                    <Table.HeaderCell>Date</Table.HeaderCell>
                     <Table.HeaderCell>Customer</Table.HeaderCell>
                     <Table.HeaderCell>Your Tips</Table.HeaderCell>
                 </Table.Row>
             {pastTipsHistory.map((data)=>(
                         <Table.Row>
+                         <Table.Cell>
+                            {toDate(data.date)}
+                        </Table.Cell>
                         <Table.Cell>
                             {data.first} {data.last}
                         </Table.Cell>
@@ -79,6 +94,7 @@ const {fetchRatings,customerAddrs,pastRatingsHistory,pastTipsHistory,marketPrice
                 <Statistic.Label>Average Tips</Statistic.Label>
             </Statistic>
             </Grid.Column>
+            </> }
         </Grid.Row>
     </Grid>
     </Container>
@@ -103,35 +119,50 @@ myProfile.getInitialProps = async (props) => {
     //Used for mapping names 
     const pastRatingsHistory = []
     const pastTipsHistory = []
-    const customerAddrs = fetchRatings.map(data=>{
+    const ratingCustomerAddrs = fetchRatings.map(data=>{
         return data.returnValues.sender;
     })
-    if (customerAddrs.length!=0) {
-        const ref = collection(db,"Users")
-        const q = query(ref,where("publicAddress","in",customerAddrs),where("role","==","customer"));
-        const querySnapshot = await getDocs(q);
-        
+    const tipCustomerAddrs = fetchTips.map(data=>{
+        return data.returnValues.sender;
+    })
+    const ref = collection(db,"Users")
+    if (ratingCustomerAddrs.length!=0) {
         let i = 0;
-        querySnapshot.forEach((doc)=>{
-          const rating = fetchRatings[i].returnValues.rating
-          const data = doc.data()
-          pastRatingsHistory.push(
-            {first:data.first,last:data.last,value:rating}
-          )
-          i = i +1;
-        });
-    
-       
-        i = 0;
-        querySnapshot.forEach((doc)=>{
-          const tips = weiToUsd(parseInt(fetchTips[i].returnValues.tipAmount),marketPrice);
-          const data = doc.data();
-          pastTipsHistory.push(
-            {first:data.first,last:data.last,value:tips}
-          )
-          i = i +1;
-        });
+        for (const cusAddr of ratingCustomerAddrs){
+            const q = query(ref,where("publicAddress","==",cusAddr),where("role","==","customer"));
+            const querySnapshot = await getDocs(q);
+
+            querySnapshot.forEach((doc)=>{
+              const rating = fetchRatings[i].returnValues.rating
+              const date = fetchRatings[i].returnValues.date
+              const data = doc.data()
+              pastRatingsHistory.push(
+                {first:data.first,last:data.last,value:rating,date:date}
+              )
+            });
+            i++;
+        }
+        
     }
+    if (tipCustomerAddrs.length!=0){
+        let i = 0;
+        for(const cusAddr of tipCustomerAddrs){
+            const q = query(ref,where("publicAddress","==",cusAddr),where("role","==","customer"));
+            const querySnapshot = await getDocs(q);
+            querySnapshot.forEach((doc)=>{
+            const tips = weiToUsd(parseInt(fetchTips[i].returnValues.tipAmount),marketPrice);
+            const date = fetchTips[i].returnValues.date;
+            console.log(date)
+            const data = doc.data();
+            pastTipsHistory.push(
+                {first:data.first,last:data.last,value:tips,date:date}
+            )
+            });
+        i++;
+        }
+    }  
+       
+    
    
     const orgname = await factory.methods.orgNames(userData.orgAddress).call();
     let hourlyRate = await service(userData.orgAddress).methods.hourlyRate().call();

@@ -18,8 +18,8 @@ export default function home(props) {
   const {user,setOrgChosen} = useAuth();
   const [open, setOpen] = useState(false);
   const {uid} = props;
-  console.log("Org Address" , userData.orgAddress);
-  console.log("useState currorg" , currOrg);
+  console.log(userData);
+  console.log(user);
   const ref = doc(db,'Users',uid)
   const router = useRouter();
   useEffect(()=>{
@@ -72,7 +72,7 @@ export default function home(props) {
 
       <h1>Welcome {userData.first} {userData.last}</h1>
     
-      {!userData.orgAddress && userData.role!='customer' ? <h2>Make sure to pick your employer!</h2> :<h3>Choose you organization</h3>  }
+      {!userData.orgAddress && userData.role!='customer' ? <h2>Make sure to pick your employer!</h2> : userData.role=='customer' ? <h3>Choose you organization</h3>:null  }
         {userData.role ==='customer' || !userData.orgAddress ? <><Dropdown placeholder ='Organization' search selection options={items} 
         onChange={(e,d)=>{
           setStaging(d.value);

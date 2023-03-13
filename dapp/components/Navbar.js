@@ -4,12 +4,14 @@ import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import logo from '@/assets/logo.svg'
+
 function Navbar() {
 const {logout,user,userData} = useAuth();
 const [role, setRole] = useState("");
 const uid = user?.uid
 const address = userData?.orgAddress
 const router = useRouter();
+
 const handleStatistics = ()=>{
   if (userData.role ==='manager') {
     router.push(`/${uid}/${address}/myProfileManager`);
@@ -20,9 +22,11 @@ const handleStatistics = ()=>{
   }
  
 }
+
+console.log(JSON.stringify(userData) === '{}');
   return (
     <>
-    {!userData ? null : 
+    {!user ?  null : 
     <Menu>
       <Menu.Item>
         <Link href= {`/${uid}/home`}>
@@ -32,18 +36,16 @@ const handleStatistics = ()=>{
         </svg>
         </Link>
       </Menu.Item>
-    {user ?
+    
     <Menu.Item position='right'> 
       <Dropdown direction='left' icon='users'> 
         <Dropdown.Menu>
-          <Dropdown.Item text ='Logout' onClick={()=>{router.push('/');logout();}}/>
-            {/* <Button onClick={()=>{router.push('/');logout();}} pr imary>Logout</Button> 
-          <Dropdown.Item/> */}
+          <Dropdown.Item text ='Logout' onClick={async()=>{await logout();router.push('/');}}/>
           <Dropdown.Item text ='My Statistics' onClick={handleStatistics}/>
         </Dropdown.Menu>
       </Dropdown>
     </Menu.Item>
-    : null}
+    
   </Menu>}
   </>
   ) 

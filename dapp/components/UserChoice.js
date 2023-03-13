@@ -8,18 +8,20 @@ import {
   Icon,
   Search,
   Segment,
-  Container
+  Container,
+  Message
 } from 'semantic-ui-react'
 import { useRouter } from 'next/router';
 import { useAuth } from '@/context/AuthContext';
 //this is the last component that is rendered after the signup flow
 function UserChoice(props) {
-  const {setUserInfo,userInfo,setFourthIsFinished,setThirdIsFinished} = props
+  const {setUserInfo,userInfo,setFourthIsFinished,setThirdIsFinished,setFinished} = props
   const {signUp,setUser} = useAuth();
   //we use the public address of the users metamask account as a unique identifier in firestore
   const handleClick  = async(e)=>{
-    setUserInfo(prev => {return {...prev,role:e.target.value}});
-    await signUp(userInfo.email,userInfo.password);
+      console.log('clicked')
+      setUserInfo(prev => {return {...prev,role:e.target.value}});
+      setFinished(true);
   }
 
   return (
@@ -34,7 +36,6 @@ function UserChoice(props) {
               <Header icon>
                 <Icon name='chess king' color='blue' />
               </Header>
-
               <Button color='blue' value='manager' onClick={e=>handleClick(e)}>Manager</Button>
             </Grid.Column>
             

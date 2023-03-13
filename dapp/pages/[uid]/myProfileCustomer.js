@@ -8,6 +8,7 @@ import { weiToUsd } from '@/helper/conversions';
 import { useAuth } from '@/context/AuthContext';
 import factory from '@/ethereum/factory';
 import average from '@/helper/average';
+import toDate from '@/helper/toDate';
 function myProfileCustomer(props) {
     //Feed of employees that the customer has rated
     //FEed of employees that the customer has tipped 
@@ -28,26 +29,32 @@ function myProfileCustomer(props) {
         const fetchPastRatings = await service(selectedOrg).getPastEvents('submitRating',{filter: {sender:userData.publicAddress}, fromBlock:0});
         console.log(fetchPastRatings)
         const fetchPastTips = await service(selectedOrg).getPastEvents('submitTip',{filter: {sender:userData.publicAddress}, fromBlock:0});
+        console.log(fetchPastTips)
         const fetchDeposits = await service(selectedOrg).getPastEvents('Deposit',{filter: {sender:userData.publicAddress}, fromBlock:0});
         setNumVisited(fetchDeposits.length);
         var empAddrs = fetchPastRatings.map((data)=>{
           return data.returnValues.recipient
         })
         const ref = collection(db,"Users")
+        var i = 0;
         if (empAddrs.length!=0){
-            var q = query(ref,where("publicAddress","in",empAddrs),where("role","==","employee"));
-            var querySnapshot = await getDocs(q);
-            const pastRatingsHistory = []
-            var i = 0;
-            querySnapshot.forEach((doc)=>{
-              console.log(doc.data())
-              const rating = fetchPastRatings[i].returnValues.rating
-              const data = doc.data()
-              pastRatingsHistory.push(
-                {first:data.first,last:data.last,value:rating}
-              )
-              i = i +1;
-            });
+          const pastRatingsHistory = []
+            for (const empAddr of empAddrs){
+              var q = query(ref,where("publicAddress","==",empAddr),where("role","==","employee"));
+              var querySnapshot = await getDocs(q);
+              querySnapshot.forEach((doc)=>{
+                const rating = fetchPastRatings[i].returnValues.rating
+                const date = toDate(fetchPastRatings[i].returnValues.date)
+                const data = doc.data()
+                pastRatingsHistory.push(
+                  {first:data.first,last:data.last,value:rating,date:date}
+                )
+              });
+              console.log(i)
+              i++;
+            }
+           
+            
             setNumRatings(i)
             setPastRatings(pastRatingsHistory);
       } else {
@@ -63,23 +70,26 @@ function myProfileCustomer(props) {
         console.log(empAddrs)
         i = 0;
         if (empAddrs.length!=0) {
-        q = query(ref,where("publicAddress","in",empAddrs),where("role","==","employee"));
-        querySnapshot = await getDocs(q);
-        const pastTipsHistory = []
-        let totalTips = 0
-        querySnapshot.forEach((doc)=>{
-          console.log(doc.data())
-          const tip = fetchPastTips[i].returnValues.tipAmount
-          const data = doc.data()
-          pastTipsHistory.push(
-            {first:data.first,last:data.last,value:weiToUsd(tip,marketPrice)}
-          )
-          totalTips = totalTips + weiToUsd(tip,marketPrice);
-          i = i +1;
-        });
-        setTotalTips(totalTips);
-        setNumTips(i);
-        setPastTips(pastTipsHistory);
+          const pastTipsHistory = []
+          let totalTips = 0
+          for(const empAddr of empAddrs){
+            q = query(ref,where("publicAddress","==",empAddr),where("role","==","employee"));
+            querySnapshot = await getDocs(q);
+            const tip = fetchPastTips[i].returnValues.tipAmount;
+            const date = toDate(fetchPastTips[i].returnValues.date)
+            //should only be one
+            querySnapshot.forEach((doc)=>{
+              const data= doc.data()
+              pastTipsHistory.push(
+                {first:data.first,last:data.last,value:weiToUsd(tip,marketPrice),date:date}
+              )
+            });
+              totalTips = totalTips + weiToUsd(tip,marketPrice)
+              i++;
+          }
+          setTotalTips(totalTips);
+          setNumTips(i);
+          setPastTips(pastTipsHistory);
         } else {
           setTotalTips(0);
           setNumTips(0);
@@ -105,11 +115,15 @@ function myProfileCustomer(props) {
                 <Table basic='very' celled collapsing>
                 <Table.Header>
                 <Table.Row>
+                  <Table.HeaderCell>Date</Table.HeaderCell>
                     <Table.HeaderCell>You Rated</Table.HeaderCell>
                     <Table.HeaderCell>Your Rating</Table.HeaderCell>
                 </Table.Row>
                 {pastRatings.map((data)=>(
                         <Table.Row>
+                          <Table.Cell>
+                            {data.date}
+                        </Table.Cell>
                         <Table.Cell>
                             {data.first} {data.last}
                         </Table.Cell>
@@ -139,11 +153,15 @@ function myProfileCustomer(props) {
                 <Table basic='very' celled collapsing>
                 <Table.Header>
                 <Table.Row>
-                    <Table.HeaderCell>Customer</Table.HeaderCell>
+                <Table.HeaderCell>Date</Table.HeaderCell>
+                    <Table.HeaderCell>Employee</Table.HeaderCell>
                     <Table.HeaderCell>Your Tips</Table.HeaderCell>
                 </Table.Row>
                   {pastTips.map((data)=>(
                         <Table.Row>
+                          <Table.Cell>
+                            {data.date}
+                        </Table.Cell>
                         <Table.Cell>
                             {data.first} {data.last}
                         </Table.Cell>
@@ -158,10 +176,10 @@ function myProfileCustomer(props) {
             </Grid.Column>
             <Grid.Column width = {5}>
             <Statistic>
-                <Statistic.Value>{totalTips}</Statistic.Value>
+                <Statistic.Value>${totalTips}</Statistic.Value>
                 <Statistic.Label>Amount Spent On Tips</Statistic.Label>
                 <Statistic.Value>{numTips}</Statistic.Value>
-                <Statistic.Label>Total Tips</Statistic.Label>
+                <Statistic.Label># Tips Given</Statistic.Label>
             </Statistic>
             </Grid.Column>
         </Grid.Row>

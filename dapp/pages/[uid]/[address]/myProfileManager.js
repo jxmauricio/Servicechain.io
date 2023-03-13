@@ -9,6 +9,7 @@ import { options } from '@/helper/conversions';
 import axios from 'axios';
 import Deposit from '@/components/Deposit';
 import average from '@/helper/average';
+import toDate from '@/helper/toDate';
 function myProfileManager(props) {
     //Balance of org
     //Number of approvlas made
@@ -19,7 +20,7 @@ function myProfileManager(props) {
   const [pastRatingsHistory,setPastRatingsHistory] = useState([]);
   const [pastTipsHistory,setPastTipsHistory] = useState([]);
   const {balance,numApprovalsMade,numEmployees,numCustomers,items,address,marketPrice} = props;
-  console.log(props)
+  console.log(selectedEmp)
   useEffect(()=>{
         const fetchData = async()=>{
                 if (selectedEmp){
@@ -30,38 +31,62 @@ function myProfileManager(props) {
                         console.log(userData)
                         const fetchRatings = await service(address).getPastEvents('submitRating',{filter: {recipient:selectedEmp}, fromBlock:0});
                         const fetchTips = await service(address).getPastEvents('submitTip',{filter: {recipient:selectedEmp}, fromBlock:0});
+                        console.log(fetchRatings,fetchTips)
                         //Used for mapping names 
-                        const customerAddrs = fetchRatings.map(data=>{
-                        return data.returnValues.sender;
+                        const ratingCustomerAddrs = fetchRatings.map(data=>{
+                                return data.returnValues.sender;
                         })
-                        if (customerAddrs.length!=0) {
-                                const ref = collection(db,"Users")
-                                const q = query(ref,where("publicAddress","in",customerAddrs),where("role","==","customer"));
-                                const querySnapshot = await getDocs(q);
+                        const tipCustomerAddrs = fetchTips.map(data=>{
+                                return data.returnValues.sender;
+                        })
+                        const ref = collection(db,"Users")
+                        var i = 0;
+                        if (ratingCustomerAddrs.length!=0) {
                                 const pastRatingsHistory = []
-                                let i = 0;
+                                for (const cusAddr of ratingCustomerAddrs) {
+                                const q = query(ref,where("publicAddress","==",cusAddr),where("role","==","customer"));
+                                const querySnapshot = await getDocs(q);  
+                                
                                 querySnapshot.forEach((doc)=>{
                                         const rating = fetchRatings[i].returnValues.rating
+                                        const date = fetchRatings[i].returnValues.date
                                         const data = doc.data()
                                         pastRatingsHistory.push(
-                                        {first:data.first,last:data.last,value:rating}
+                                        {first:data.first,last:data.last,value:rating,date:toDate(date)}
                                         )
-                                        i = i +1;
-                                });
+                                        
+                                })
+                                i++;
+                                }
                                 setPastRatingsHistory(pastRatingsHistory);
-                                const pastTipsHistory = []
-                                i = 0;
-                                querySnapshot.forEach((doc)=>{
-                                const tips = weiToUsd(parseInt(fetchTips[i].returnValues.tipAmount),marketPrice);
-                                const data = doc.data();
-                                pastTipsHistory.push(
-                                {first:data.first,last:data.last,value:tips}
-                                )
-                                i = i +1;
-                                });  
-                                setPastTipsHistory(pastTipsHistory);
                         } else {
                                 setPastRatingsHistory([]);
+                        }
+                        i = 0;
+                        if (tipCustomerAddrs.length!=0) {
+                                //finds all customers that have tipped (Problem is now that we are using one public address to test everything so this query)
+                                //actually finds everything so one person could just have a public address and not have tipped but it would stil be used causing errors 
+                                //we should probably use different accounts for demo purposes
+                                const pastTipsHistory = []
+                                for (const cusAddr of tipCustomerAddrs){
+                                const q = query(ref,where("publicAddress","==",cusAddr),where("role","==","customer"));
+                                const querySnapshot = await getDocs(q);
+                               
+                               
+                                querySnapshot.forEach((doc)=>{
+                                        console.log('tips', fetchTips[i].returnValues );
+                                        const tips = weiToUsd(parseInt(fetchTips[i].returnValues.tipAmount),marketPrice);
+                                        const date = fetchTips[i].returnValues.date
+                                        const data = doc.data();
+                                        pastTipsHistory.push(
+                                        {first:data.first,last:data.last,value:tips,date:toDate(date)}
+                                        )
+                                       
+                                })
+                                i ++;
+                        }  
+                                setPastTipsHistory(pastTipsHistory);
+                        } else {
                                 setPastTipsHistory([]);
                         }  
                 }
@@ -83,13 +108,17 @@ function myProfileManager(props) {
                         <Table basic='very' celled collapsing>
                         <Table.Header>
                         <Table.Row>
+                        <Table.HeaderCell>Date</Table.HeaderCell>
                         <Table.HeaderCell>Customer</Table.HeaderCell>
                         <Table.HeaderCell>Your Rating</Table.HeaderCell>
                         </Table.Row>
                         {pastRatingsHistory.map((data)=>(
                                 <Table.Row>
                                 <Table.Cell>
-                                {data.first} {data.last}
+                                        {data.date}
+                                </Table.Cell>
+                                <Table.Cell>
+                                        {data.first} {data.last}
                                 </Table.Cell>
                                 <Table.Cell>
                                 <Rating icon='star' defaultRating={data.value} maxRating = {5}disabled/>
@@ -116,16 +145,20 @@ function myProfileManager(props) {
                         <Table basic='very' celled collapsing>
                         <Table.Header>
                         <Table.Row>
+                        <Table.HeaderCell>Date</Table.HeaderCell>
                         <Table.HeaderCell>Customer</Table.HeaderCell>
                         <Table.HeaderCell>Your Tips</Table.HeaderCell>
                         </Table.Row>
                 {pastTipsHistory.map((data)=>(
                                 <Table.Row>
                                 <Table.Cell>
-                                {data.first} {data.last}
+                                        {data.date}
                                 </Table.Cell>
                                 <Table.Cell>
-                                $ {data.value}
+                                        {data.first} {data.last}
+                                </Table.Cell>
+                                <Table.Cell>
+                                        ${data.value}
                                 </Table.Cell>
                         </Table.Row>
                         ))}

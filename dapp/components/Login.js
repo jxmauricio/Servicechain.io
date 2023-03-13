@@ -15,10 +15,10 @@ function Login() {
         
       const enterHub = async()=>{
         if (user){
+            console.log('User still logged in ')
+            router.prefetch(`${user.uid}/home`);
             router.push(`${user.uid}/home`);
-        } else {
-            null
-        }
+        } 
       }
     enterHub()
     } , [user])

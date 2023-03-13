@@ -3,5 +3,5 @@ export default (data)=>{
     for (var i =0 ;i<data.length;i++){
         total += parseInt(data[i].value)
     }
-    return total/parseFloat(data.length);
+    return Math.round(total/parseFloat(data.length)*100)/100;
 }
