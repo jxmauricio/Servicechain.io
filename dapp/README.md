@@ -86,7 +86,7 @@ Username: jm@gmail.com  <br>
 Password: password<br>
 <br>
 User Type: Customer<br>
-Username: kk@gmail.com  <br>
+Username: sr@gmail.com  <br>
 Password: password<br>
 <br>
 ## Extras
