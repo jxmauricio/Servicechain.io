@@ -5,27 +5,21 @@ import web3 from '@/ethereum/web3';
 import { Button,Container,Form,Input,Message,Dropdown,Rating,Segment } from 'semantic-ui-react'
 import 'semantic-ui-css/semantic.min.css';
 import { useRouter } from 'next/router';
-import { options } from '@/helper/conversions';
 import { collection,query,where,getDocs } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 
-import axios from 'axios';
 function rating(props) {
-  // console.log(props.currentContract.methods.sendRatings());
   const router = useRouter();
   const address = router.query.address;
-  console.log(address)
-  const [waiterAddress, setWaiterAddress] = useState('');
-  const [customerAddress, setCustomerAddress] = useState('');
+
   const [rating, setRating] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [empFilter, setEmpFilter] = useState('');
   const [empOptions, setEmpOptions] = useState([]);
-
+ //gets the data on employees that the customer could rate for the given organziaiton 
   useEffect(() => {
     const fetchRequests = async()=>{
-
     const usersRef = collection(db,'Users');
     const q = query(usersRef,where("orgAddress","==",address),where("role","==","employee"));
     const querySnapshot = await getDocs(q);
@@ -41,7 +35,7 @@ function rating(props) {
     }
     fetchRequests();
   },[loading])
-  
+  //submits the rating onto the blockchain
   var onSubmit = async()=>{
     try {
       const accounts = await web3.eth.getAccounts();
@@ -74,7 +68,6 @@ function rating(props) {
 rating.getInitialProps = async (props)=>{
     const {address} = props.query;
     const currentContract = service(address);
-    // await currentContract.methods.sendRatings('0x875439656098eBAF5F9d1908441Ab29C4A8Eb96A','0x8d77A1962a6214d7f5FDEd8364eD4260833f06E8',2).send({from:accounts[0]});
     const orgName = await factory.methods.orgNames(address).call();
     return {address,currentContract,orgName}
 }

@@ -32,7 +32,6 @@ function ServiceCreation(props) {
         const accounts = await web3.eth.getAccounts();
         const hourlyRateToWei = usdToWei(hourlyRate,marketPrice);
         const weiDeposit = usdToWei(amount,marketPrice);
-        console.log(orgName,hourlyRateToWei);
         //creates the service and uses the first account in metamask to create it
         await factory.methods.createService(orgName,BigInt(hourlyRateToWei)).send({ from:accounts[0],value:weiDeposit});
         const services = await factory.methods.getDeployedServices().call();

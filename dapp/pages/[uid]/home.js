@@ -1,12 +1,11 @@
 import {React,useState,useEffect} from 'react';
 import factory from '../../ethereum/factory';
-import { Card,Button,Form,Confirm,Message,Container,Dropdown,Icon,Segment,Grid,Divider,Popup} from "semantic-ui-react";
+import { Button,Confirm,Container,Dropdown,Icon,Segment,Grid,Divider} from "semantic-ui-react";
 import 'semantic-ui-css/semantic.min.css'
-import Link from 'next/link';
 import {auth, db} from '../../config/firebase'
-import { getDoc,setDoc,doc, collection, addDoc,updateDoc,arrayUnion } from 'firebase/firestore';
+import { getDoc,setDoc,doc,updateDoc,arrayUnion } from 'firebase/firestore';
 import { useRouter } from 'next/router';
-import ServiceCreation from '@/pages/[uid]/ServiceCreation';
+
 import { useAuth } from '@/context/AuthContext';
 import UserAction from '@/components/UserAction';
 //This page renders out the "home" page of our website
@@ -18,8 +17,7 @@ export default function home(props) {
   const {user,setOrgChosen} = useAuth();
   const [open, setOpen] = useState(false);
   const {uid} = props;
-  console.log(userData);
-  console.log(user);
+
   const ref = doc(db,'Users',uid)
   const router = useRouter();
   useEffect(()=>{

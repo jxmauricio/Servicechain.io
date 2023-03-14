@@ -11,7 +11,7 @@ const [role, setRole] = useState("");
 const uid = user?.uid
 const address = userData?.orgAddress
 const router = useRouter();
-
+//handles the statistcs page 
 const handleStatistics = ()=>{
   if (userData.role ==='manager') {
     router.push(`/${uid}/${address}/myProfileManager`);
@@ -23,7 +23,6 @@ const handleStatistics = ()=>{
  
 }
 
-console.log(JSON.stringify(userData) === '{}');
   return (
     <>
     {!user ?  null : 

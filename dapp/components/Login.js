@@ -12,10 +12,8 @@ function Login() {
     const router = useRouter();
     
     useEffect(() => {
-        
       const enterHub = async()=>{
         if (user){
-            console.log('User still logged in ')
             router.prefetch(`${user.uid}/home`);
             router.push(`${user.uid}/home`);
         } 
@@ -26,7 +24,6 @@ function Login() {
     const handleLogin = async()=>{
         setLoading(true);
         try{
-            console.log(currEmail,password)
             await login(currEmail, password);
           
         } catch (error){

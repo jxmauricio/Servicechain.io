@@ -14,15 +14,13 @@ function tip(props) {
   const {empOptions,address,userData} = props;
   const [selectedEmp,setSelectedEmp] = useState('');
   
-  console.log(totalAmount)
+
   const onSubmit = async(gratuity)=>{
     const {tip,bill} = calculateTipAndBill(totalAmount,gratuity);
-    console.log(tip,bill);
-    console.log(address,userData.publicAddress,selectedEmp);
     await service(address).methods.sendTip(selectedEmp).send({from:userData.publicAddress,value:usdToWei(tip,marketPrice)});
     await service(address).methods.deposit().send({from:userData.publicAddress,value:usdToWei(bill,marketPrice)});
   }
-
+  //finds the tip amount of the  total bill 
   const calculateTipAndBill= (billAmount,gratuity)=>{
     const totalPrice = billAmount * (1+gratuity);
     const tip = Math.round(totalPrice * (gratuity)*100)/100;
@@ -67,7 +65,7 @@ tip.getInitialProps = async(props)=>{
   const ref= doc(db,"Users",uid);
   const snapShot = await getDoc(ref);
   const userData = snapShot.data()
-
+  //grabs the data on possible employees the customer can tip 
   const usersRef= collection(db,"Users");
   const q = query(usersRef,where("orgAddress","==",address),where("role","==","employee"));
   const querySnapshot = await getDocs(q);

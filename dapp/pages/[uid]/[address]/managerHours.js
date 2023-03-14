@@ -13,17 +13,13 @@ import { useAuth } from '@/context/AuthContext';
 import Deposit from '@/components/Deposit';
 function hours(props) {
   //function gets the days of the week and puts it in an array 
-  const {address,orgName,currentContract} = props;
+  const {address} = props;
   const [requests, setRequests] = useState([])
-  const [approvedRequests, setApprovedRequests] = useState([])
-  const [startDate, setStartDate] = useState(new Date());
-  const [hours, setHours] = useState(0);
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false);
   const [empOptions, setEmpOptions] = useState([]);
   const [empFilter, setEmpFilter] = useState('');
   const {marketPrice} = useAuth();
-
+//fetches the employees under the current organization 
   useEffect(() => {
       const fetchRequests = async()=>{
 
@@ -54,15 +50,13 @@ function hours(props) {
     }
     fetchRequests();
   }, [empFilter])
-
+    //calls the confirm hours function in our smart contract
     const onApprove = async(index)=>{
-    console.log(index);
     const accounts = await web3.eth.getAccounts();
     await service(address).methods.confirmHours(empFilter,index).send({from:accounts[0]});
   }
-
+  //calls the deny hours function in our smart contract
     const onDeny = async(index)=>{
-    console.log(index);
     const accounts = await web3.eth.getAccounts();
     await service(address).methods.denyHours(empFilter,index).send({from:accounts[0]});
   }
@@ -82,7 +76,6 @@ function hours(props) {
 
 
 
-    console.log(empOptions.length);
   return (
     <Container style={{'marginTop':'20px'}} textAlign='center'>
       <h3>Pending Hour Request For {props.orgName}</h3>

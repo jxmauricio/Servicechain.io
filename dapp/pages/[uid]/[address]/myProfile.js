@@ -1,6 +1,5 @@
 import React from 'react'
 import service from '@/ethereum/service';
-import { useAuth } from '@/context/AuthContext';
 import { db } from '@/config/firebase';
 import { doc,getDoc,collection,query, where,getDocs } from 'firebase/firestore';
 import { Table,Rating,Container,Grid,Statistic,Icon,Message,Segment,Label } from 'semantic-ui-react';
@@ -9,9 +8,7 @@ import average from '@/helper/average';
 import factory from '@/ethereum/factory';
 import toDate from '@/helper/toDate';
 function myProfile(props) {
-const {user} = useAuth();
-const {fetchRatings,ratingCustomerAddrs,pastRatingsHistory,pastTipsHistory,marketPrice,hourlyRate,orgname} = props
-console.log(pastTipsHistory)
+const {pastRatingsHistory,pastTipsHistory,marketPrice,hourlyRate,orgname} = props
   return (
     <Container textAlign='center'> 
     {pastRatingsHistory.length ==0 && pastTipsHistory ==0 ? <Message header='Uh Oh!' content="Looks like you don't have any ratings or tips yet. Come back later when you do!"/>: 
@@ -105,15 +102,13 @@ console.log(pastTipsHistory)
 
 
 myProfile.getInitialProps = async (props) => {
-    //replace this later
-  
+    //gets the market Data of eth to usd 
     let marketPrice = await getDoc(doc(db,'MarketPrice','eth'));
     marketPrice = marketPrice.data().usd;
     const {address,uid} = props.query;
     const usersRef= doc(db,"Users",uid);
     const snapShot = await getDoc(usersRef);
     const userData = snapShot.data()
-    console.log(userData)
     const fetchRatings = await service(address).getPastEvents('submitRating',{filter: {recipient:userData.publicAddress}, fromBlock:0});
     const fetchTips = await service(address).getPastEvents('submitTip',{filter: {recipient:userData.publicAddress}, fromBlock:0});
     //Used for mapping names 
@@ -126,6 +121,7 @@ myProfile.getInitialProps = async (props) => {
         return data.returnValues.sender;
     })
     const ref = collection(db,"Users")
+    //gets customers who rated the employee if there is any
     if (ratingCustomerAddrs.length!=0) {
         let i = 0;
         for (const cusAddr of ratingCustomerAddrs){
@@ -144,6 +140,7 @@ myProfile.getInitialProps = async (props) => {
         }
         
     }
+    //gets customers who tipped the employee if there is any
     if (tipCustomerAddrs.length!=0){
         let i = 0;
         for(const cusAddr of tipCustomerAddrs){
@@ -152,7 +149,6 @@ myProfile.getInitialProps = async (props) => {
             querySnapshot.forEach((doc)=>{
             const tips = weiToUsd(parseInt(fetchTips[i].returnValues.tipAmount),marketPrice);
             const date = fetchTips[i].returnValues.date;
-            console.log(date)
             const data = doc.data();
             pastTipsHistory.push(
                 {first:data.first,last:data.last,value:tips,date:date}
@@ -163,11 +159,10 @@ myProfile.getInitialProps = async (props) => {
     }  
        
     
-   
+    //maps organziaiton public addresses to readble names
     const orgname = await factory.methods.orgNames(userData.orgAddress).call();
     let hourlyRate = await service(userData.orgAddress).methods.hourlyRate().call();
     hourlyRate = weiToUsd(hourlyRate,marketPrice)
-    console.log(hourlyRate)
     return {fetchRatings,uid,address,pastRatingsHistory,pastTipsHistory,marketPrice,userData,orgname,hourlyRate}
 }
 export default myProfile;

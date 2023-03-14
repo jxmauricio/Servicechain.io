@@ -22,21 +22,21 @@ function myProfileCustomer(props) {
   const [totalTips,setTotalTips] = useState(0);
   const {items,userData} = props;
   const {marketPrice} = useAuth();
-  console.log(selectedOrg)
+
   useEffect(()=>{
     const getData = async()=>{
       if (selectedOrg) {
         const fetchPastRatings = await service(selectedOrg).getPastEvents('submitRating',{filter: {sender:userData.publicAddress}, fromBlock:0});
-        console.log(fetchPastRatings)
         const fetchPastTips = await service(selectedOrg).getPastEvents('submitTip',{filter: {sender:userData.publicAddress}, fromBlock:0});
-        console.log(fetchPastTips)
         const fetchDeposits = await service(selectedOrg).getPastEvents('Deposit',{filter: {sender:userData.publicAddress}, fromBlock:0});
+
         setNumVisited(fetchDeposits.length);
         var empAddrs = fetchPastRatings.map((data)=>{
           return data.returnValues.recipient
         })
         const ref = collection(db,"Users")
         var i = 0;
+        //finds employees that this customer has rated if any 
         if (empAddrs.length!=0){
           const pastRatingsHistory = []
             for (const empAddr of empAddrs){
@@ -67,8 +67,8 @@ function myProfileCustomer(props) {
         empAddrs = fetchPastTips.map((data)=>{
           return data.returnValues.recipient
         })
-        console.log(empAddrs)
         i = 0;
+        //finds employees this customer has tips if any 
         if (empAddrs.length!=0) {
           const pastTipsHistory = []
           let totalTips = 0
